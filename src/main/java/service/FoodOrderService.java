@@ -38,4 +38,8 @@ public class FoodOrderService {
 
         orderRepository.save(order);
     }
+    // این متد را اضافه کن تا لیست همه غذاها را از دیتابیس بگیرد
+    public java.util.List<Food> getAllFoods() {
+        return foodRepository.findAll();
+    }
 }
