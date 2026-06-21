@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>منوی غذای سازمانی</title>
+    <style>
+        body { font-family: 'Tahoma', sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; text-align: center; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #d35400; border-bottom: 2px solid #e67e22; padding-bottom: 10px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+        th { background-color: #e67e22; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        tr:hover { background-color: #fdf2e9; }
+
+        .price { font-weight: bold; color: #27ae60; }
+        .btn-order { background-color: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; text-decoration: none; }
+        .btn-order:hover { background-color: #219150; }
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .order-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+            transition: background-color 0.2s ease;
+        }
+
+        .order-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>منوی غذای روزانه سازمان</h1>
+
+    <div th:if="${param.success}" class="success-message">
+        سفارش شما با موفقیت ثبت شد.
+    </div>
+
+    <p>لطفا غذای مورد نظر خود را انتخاب کنید:</p>
+    <table>
+        <thead>
+        <tr>
+            <th>نام غذا</th>
+            <th>توضیحات</th>
+            <th>قیمت (تومان)</th>
+            <th>عملیات</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- این بخش با استفاده از Thymeleaf لیست غذاها را از جاوا می‌گیرد -->
+        <tr th:each="food : ${foods}">
+            <td th:text="${food.name}">نام غذا</td>
+            <td th:text="${food.description}">توضیحات</td>
+            <td class="price" th:text="${#numbers.formatDecimal(food.price, 0, 'COMMA', 0, 'POINT')}">۰</td>
+            <td>
+                <form th:action="@{/order/{id}(id=${food.id})}" method="post">
+                    <button type="submit" class="order-btn">ثبت سفارش</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
