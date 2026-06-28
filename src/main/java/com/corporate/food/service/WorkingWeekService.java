@@ -14,6 +14,8 @@ import com.corporate.food.repository.WorkingWeekRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.corporate.food.exception.ResourceNotFoundException;
+
 
 @Service
 @RequiredArgsConstructor
@@ -35,34 +37,59 @@ public class WorkingWeekService extends BaseService<WorkingWeek, Long> {
     }
 
     public PagedResponse<WorkingWeekResponse> findAll(WorkingWeekFilterDTO filter) {
-        // TODO: Implement business logic using toPageable(filter)
-        return PagedResponse.empty(filter);
+        var pageable = toPageable(filter); // تبدیل فیلتر به Pageable
+        var page = workingWeekRepository.findAll(pageable); // گرفتن صفحه هفته‌های کاری
+        var responsePage = page.map(entityMapper::toWorkingWeekResponse); // تبدیل هر Week به WorkingWeekResponse
+        return PagedResponse.of(responsePage, responsePage.getContent()); // برگرداندن پاسخ صفحه‌بندی شده
     }
+
+
 
     public WorkingWeekResponse findById(Long id) {
-        // TODO: Implement business logic
-        return null;
+        var workingWeek = workingWeekRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Working week", "id", id));
+
+        return entityMapper.toWorkingWeekResponse(workingWeek);
     }
 
+
     public PagedResponse<WeekDayResponse> findAllWeekDays(WeekDayFilterDTO filter) {
-        // TODO: Implement business logic using toPageable(filter)
-        return PagedResponse.empty(filter);
+        var pageable = toPageable(filter);
+        var page = weekDayRepository.findAll(pageable);
+        var responsePage = page.map(entityMapper::toWeekDayResponse);
+        return PagedResponse.of(responsePage, responsePage.getContent());
     }
 
     @Transactional
     public WorkingWeekResponse create(WorkingWeekRequest request) {
-        // TODO: Implement business logic
-        return null;
+        WorkingWeek workingWeek = (WorkingWeek) entityMapper.toWorkingWeek(request);
+        return entityMapper.toWorkingWeekResponse(workingWeekRepository.save(workingWeek));
     }
 
     @Transactional
     public WorkingWeekResponse update(Long id, WorkingWeekRequest request) {
-        // TODO: Implement business logic
-        return null;
+        var workingWeek = workingWeekRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Working week", "id", id));
+
+        entityMapper.updateWorkingWeekFromRequest(request, workingWeek);
+
+        var savedWorkingWeek = workingWeekRepository.save(workingWeek);
+
+        return entityMapper.toWorkingWeekResponse(savedWorkingWeek);
     }
 
+
     @Transactional
-    public void delete(Long id) {
-        // TODO: Implement business logic
-    }
+public void delete(Long id) {
+    // ۱. پیدا کردن هفته کاری، اگر نبود خطا بده
+    var workingWeek = workingWeekRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Working week", "id", id));
+
+    // ۲. حذف هفته کاری
+    workingWeekRepository.delete(workingWeek);
 }
+
+
+    }
+
+

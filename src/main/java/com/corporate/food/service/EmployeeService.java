@@ -1,5 +1,6 @@
 package com.corporate.food.service;
 
+import com.corporate.food.domain.entity.Company;
 import com.corporate.food.domain.entity.Employee;
 import com.corporate.food.dto.EmployeeRequest;
 import com.corporate.food.dto.EmployeeResponse;
@@ -33,30 +34,66 @@ public class EmployeeService extends BaseService<Employee, Long> {
         return "Employee";
     }
 
+
     public PagedResponse<EmployeeResponse> findAll(EmployeeFilterDTO filter) {
-        // TODO: Implement business logic using toPageable(filter)
-        return PagedResponse.empty(filter);
+        var pageable = toPageable(filter);
+        var page = employeeRepository.findAll(pageable);
+
+        var items = page.getContent()
+                .stream()
+                .map(entityMapper::toEmployeeResponse)
+                .toList();
+
+        return PagedResponse.of(page, items);
+
     }
 
     public EmployeeResponse findById(Long id) {
-        // TODO: Implement business logic
-        return null;
+        return entityMapper.toEmployeeResponse(findEntityById(id));
+
     }
 
     @Transactional
     public EmployeeResponse create(EmployeeRequest request) {
-        // TODO: Implement business logic
-        return null;
+        Company company = companyService.findEntityById(request.getCompanyId());
+
+        Employee employee = new Employee();
+        employee.setUsername(request.getUsername());
+        employee.setPassword(passwordEncoder.encode(request.getPassword()));
+        employee.setFirstName(request.getFirstName());
+        employee.setLastName(request.getLastName());
+        employee.setPersonnelCode(request.getPersonnelCode());
+        employee.setRole(request.getRole());
+        employee.setEnabled(true);
+        employee.setCompany(company);
+
+        Employee saved = employeeRepository.save(employee);
+
+        return entityMapper.toEmployeeResponse(saved);
+
     }
 
     @Transactional
     public EmployeeResponse update(Long id, EmployeeRequest request) {
-        // TODO: Implement business logic
-        return null;
+        Employee employee = findEntityById(id);
+
+        employee.setFirstName(request.getFirstName());
+        employee.setLastName(request.getLastName());
+        employee.setPersonnelCode(request.getPersonnelCode());
+        employee.setRole(request.getRole());
+
+        if (request.getPassword() != null) {
+            employee.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        Employee updated = employeeRepository.save(employee);
+
+        return entityMapper.toEmployeeResponse(updated);
+
     }
 
     @Transactional
     public void delete(Long id) {
-        // TODO: Implement business logic
+        deleteById(id);
     }
 }

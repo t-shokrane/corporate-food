@@ -5,6 +5,7 @@ import com.corporate.food.dto.FoodRequest;
 import com.corporate.food.dto.FoodResponse;
 import com.corporate.food.dto.PagedResponse;
 import com.corporate.food.dto.filter.FoodFilterDTO;
+import com.corporate.food.exception.ResourceNotFoundException;
 import com.corporate.food.mapper.EntityMapper;
 import com.corporate.food.repository.BaseRepository;
 import com.corporate.food.repository.FoodRepository;
@@ -31,29 +32,38 @@ public class FoodService extends BaseService<Food, Long> {
     }
 
     public PagedResponse<FoodResponse> findAll(FoodFilterDTO filter) {
-        // TODO: Implement business logic using toPageable(filter)
-        return PagedResponse.empty(filter);
+        var page = foodRepository.findAll(toPageable(filter));
+        var responsePage = page.map(entityMapper::toFoodResponse);
+        return PagedResponse.of(responsePage, responsePage.getContent());
     }
 
     public FoodResponse findById(Long id) {
-        // TODO: Implement business logic
-        return null;
+        return foodRepository.findById(id)
+                .map(entityMapper::toFoodResponse)
+                .orElseThrow(() -> new ResourceNotFoundException("Food not found with id: " + id));
     }
 
     @Transactional
     public FoodResponse create(FoodRequest request) {
-        // TODO: Implement business logic
-        return null;
+        Food food = (Food) entityMapper.toFood(request);
+        return entityMapper.toFoodResponse(foodRepository.save(food));
     }
+
+
 
     @Transactional
     public FoodResponse update(Long id, FoodRequest request) {
-        // TODO: Implement business logic
-        return null;
+        var food = foodRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Food not found with id: " + id));
+        entityMapper.updateFoodFromRequest(request, food);
+        return entityMapper.toFoodResponse(foodRepository.save(food));
     }
 
     @Transactional
     public void delete(Long id) {
-        // TODO: Implement business logic
+        if (!foodRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Food not found with id: " + id);
+        }
+        foodRepository.deleteById(id);
     }
 }

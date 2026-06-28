@@ -5,6 +5,7 @@ import com.corporate.food.dto.WeeklyMenuRequest;
 import com.corporate.food.dto.WeeklyMenuResponse;
 import com.corporate.food.dto.PagedResponse;
 import com.corporate.food.dto.filter.WeeklyMenuFilterDTO;
+import com.corporate.food.exception.ResourceNotFoundException;
 import com.corporate.food.mapper.EntityMapper;
 import com.corporate.food.repository.BaseRepository;
 import com.corporate.food.repository.FoodOrderRepository;
@@ -35,29 +36,41 @@ public class WeeklyMenuService extends BaseService<WeeklyMenu, Long> {
     }
 
     public PagedResponse<WeeklyMenuResponse> findAll(WeeklyMenuFilterDTO filter) {
-        // TODO: Implement business logic using toPageable(filter)
-        return PagedResponse.empty(filter);
+        var pageable = toPageable(filter);
+        var page = weeklyMenuRepository.findAll(pageable);
+        var responsePage = page.map(entityMapper::toWeeklyMenuResponse);
+        return PagedResponse.of(responsePage, responsePage.getContent());
     }
 
     public WeeklyMenuResponse findById(Long id) {
-        // TODO: Implement business logic
-        return null;
+        var weeklyMenu = weeklyMenuRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Weekly menu not found with id: " + id));
+        return entityMapper.toWeeklyMenuResponse(weeklyMenu);
     }
 
     @Transactional
     public WeeklyMenuResponse create(WeeklyMenuRequest request) {
-        // TODO: Implement business logic
-        return null;
+        WeeklyMenu weeklyMenu = (WeeklyMenu) entityMapper.toWeeklyMenu(request);
+        return entityMapper.toWeeklyMenuResponse(weeklyMenuRepository.save(weeklyMenu));
     }
 
     @Transactional
     public WeeklyMenuResponse update(Long id, WeeklyMenuRequest request) {
-        // TODO: Implement business logic
-        return null;
+        var weeklyMenu = weeklyMenuRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Weekly menu not found with id: " + id));
+
+        entityMapper.updateWeeklyMenuFromRequest(request, weeklyMenu);
+
+        var savedWeeklyMenu = weeklyMenuRepository.save(weeklyMenu);
+        return entityMapper.toWeeklyMenuResponse(savedWeeklyMenu);
     }
+
 
     @Transactional
     public void delete(Long id) {
-        // TODO: Implement business logic
+        var weeklyMenu = weeklyMenuRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Weekly menu not found with id: " + id));
+        weeklyMenuRepository.delete(weeklyMenu);
+
+        }
     }
-}

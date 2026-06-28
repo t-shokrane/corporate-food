@@ -6,6 +6,8 @@ import com.corporate.food.dto.filter.BaseFilterDTO;
 import com.corporate.food.exception.ResourceNotFoundException;
 import com.corporate.food.repository.BaseRepository;
 import java.util.function.Function;
+
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,5 +39,9 @@ public abstract class BaseService<E extends BaseDomain, ID> {
     @Transactional
     public void deleteById(ID id) {
         getRepository().delete(findEntityById(id));
+    }
+
+    protected Object findWeekDayById(@NotNull Long weekdayId) {
+        return null;
     }
 }

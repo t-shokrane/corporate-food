@@ -7,17 +7,12 @@ import com.corporate.food.domain.entity.FoodOrder;
 import com.corporate.food.domain.entity.WeekDay;
 import com.corporate.food.domain.entity.WeeklyMenu;
 import com.corporate.food.domain.entity.WorkingWeek;
-import com.corporate.food.dto.CompanyResponse;
-import com.corporate.food.dto.EmployeeResponse;
-import com.corporate.food.dto.FoodOrderResponse;
-import com.corporate.food.dto.FoodResponse;
-import com.corporate.food.dto.WeekDayResponse;
-import com.corporate.food.dto.WeeklyMenuResponse;
-import com.corporate.food.dto.WorkingWeekResponse;
+import com.corporate.food.dto.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.ReportingPolicy;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface EntityMapper {
@@ -70,4 +65,15 @@ public interface EntityMapper {
     @Mapping(target = "foodId", source = "food.id")
     @Mapping(target = "foodName", source = "food.name")
     FoodOrderResponse toFoodOrderResponse(FoodOrder order);
+
+    void updateWeeklyMenuFromRequest(WeeklyMenuRequest request, @MappingTarget WeeklyMenu weeklyMenu);
+    Object toWeeklyMenu(WeeklyMenuRequest request);
+
+    Object toFood(FoodRequest request);
+
+    void updateFoodFromRequest(FoodRequest request, @MappingTarget Food food);
+
+    void updateWorkingWeekFromRequest(WorkingWeekRequest request, @MappingTarget WorkingWeek workingWeek);
+
+    Object toWorkingWeek(WorkingWeekRequest request);
 }
