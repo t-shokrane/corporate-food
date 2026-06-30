@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.corporate.food.exception.ResourceNotFoundException;
+import com.corporate.food.exception.BusinessException;
+import com.corporate.food.repository.WeeklyMenuRepository;
 
 
 @Service
@@ -25,6 +27,7 @@ public class WorkingWeekService extends BaseService<WorkingWeek, Long> {
     private final WorkingWeekRepository workingWeekRepository;
     private final WeekDayRepository weekDayRepository;
     private final EntityMapper entityMapper;
+    private final WeeklyMenuRepository weeklyMenuRepository;
 
     @Override
     protected BaseRepository<WorkingWeek, Long> getRepository() {
@@ -63,7 +66,7 @@ public class WorkingWeekService extends BaseService<WorkingWeek, Long> {
     @Transactional
     public WorkingWeekResponse create(WorkingWeekRequest request) {
         // TODO: POST broken — entityMapper.toWorkingWeek returns Object; unsafe cast may fail or produce invalid entity for save
-        WorkingWeek workingWeek = (WorkingWeek) entityMapper.toWorkingWeek(request);
+        WorkingWeek workingWeek = entityMapper.toWorkingWeek(request);
         return entityMapper.toWorkingWeekResponse(workingWeekRepository.save(workingWeek));
     }
 
@@ -81,17 +84,16 @@ public class WorkingWeekService extends BaseService<WorkingWeek, Long> {
 
 
     @Transactional
-public void delete(Long id) {
-    // TODO: Delete integrity — deleting working week orphans weekly_menus and food_orders with FK week_id; cascade or restrict delete required
-    // ۱. پیدا کردن هفته کاری، اگر نبود خطا بده
-    var workingWeek = workingWeekRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Working week", "id", id));
+    public void delete(Long id) {
 
-    // ۲. حذف هفته کاری
-    workingWeekRepository.delete(workingWeek);
-}
+        var workingWeek = workingWeekRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Working week", "id", id));
 
+        if (weeklyMenuRepository.existsByWorkingWeekId(id)) {
+            throw new BusinessException("Cannot delete working week because it has weekly menus.");
+        }
 
+        workingWeekRepository.delete(workingWeek);
     }
-
+    }
 

@@ -13,6 +13,7 @@ import com.corporate.food.repository.WeeklyMenuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.corporate.food.repository.WeekDayRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class WeeklyMenuService extends BaseService<WeeklyMenu, Long> {
     private final FoodService foodService;
     private final FoodOrderRepository foodOrderRepository;
     private final EntityMapper entityMapper;
+    private final WeekDayRepository weekDayRepository;
 
     @Override
     protected BaseRepository<WeeklyMenu, Long> getRepository() {
@@ -36,11 +38,20 @@ public class WeeklyMenuService extends BaseService<WeeklyMenu, Long> {
     }
 
     public PagedResponse<WeeklyMenuResponse> findAll(WeeklyMenuFilterDTO filter) {
-        // TODO: Filter not applied — filter.weekId (and weekdayId) ignored; repository uses findAll without predicates
+
         var pageable = toPageable(filter);
-        var page = weeklyMenuRepository.findAll(pageable);
-        // TODO: GET list returns 500 — lazy-loaded workingWeek/weekDay/food accessed outside session during toWeeklyMenuResponse mapping
+
+        var page =
+                filter.getWeekId() != null && filter.getWeekdayId() != null
+                        ? weeklyMenuRepository.findByWorkingWeekIdAndWeekDayId(
+                        filter.getWeekId(), filter.getWeekdayId(), pageable)
+                        : filter.getWeekId() != null
+                          ? weeklyMenuRepository.findByWorkingWeekId(
+                        filter.getWeekId(), pageable)
+                          : weeklyMenuRepository.findAll(pageable);
+
         var responsePage = page.map(entityMapper::toWeeklyMenuResponse);
+
         return PagedResponse.of(responsePage, responsePage.getContent());
     }
 
@@ -52,12 +63,23 @@ public class WeeklyMenuService extends BaseService<WeeklyMenu, Long> {
 
     @Transactional
     public WeeklyMenuResponse create(WeeklyMenuRequest request) {
-        // TODO: POST broken — entityMapper.toWeeklyMenu returns Object; unsafe cast may fail or produce invalid entity for save
-        // TODO: WeeklyMenu create incomplete — workingWeek, weekDay, and food relations from request IDs are not resolved and set before save
-        WeeklyMenu weeklyMenu = (WeeklyMenu) entityMapper.toWeeklyMenu(request);
-        return entityMapper.toWeeklyMenuResponse(weeklyMenuRepository.save(weeklyMenu));
-    }
 
+        WeeklyMenu weeklyMenu = entityMapper.toWeeklyMenu(request);
+
+        weeklyMenu.setWorkingWeek(
+                workingWeekService.findEntityById(request.getWeekId()));
+
+        weeklyMenu.setFood(
+                foodService.findEntityById(request.getFoodId()));
+
+        weeklyMenu.setWeekDay(
+                weekDayRepository.findById(request.getWeekdayId())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException("Week day not found with id: " + request.getWeekdayId())));
+
+        return entityMapper.toWeeklyMenuResponse(
+                weeklyMenuRepository.save(weeklyMenu));
+    }
     @Transactional
     public WeeklyMenuResponse update(Long id, WeeklyMenuRequest request) {
         var weeklyMenu = weeklyMenuRepository.findById(id)

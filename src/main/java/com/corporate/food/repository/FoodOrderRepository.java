@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+
 
 public interface FoodOrderRepository extends BaseRepository<FoodOrder, Long> {
 
@@ -18,6 +22,16 @@ public interface FoodOrderRepository extends BaseRepository<FoodOrder, Long> {
     List<FoodOrder> findByEmployeeIdAndWorkingWeekId(Long employeeId, Long weekId);
 
     List<FoodOrder> findByWorkingWeekIdAndWeekDayId(Long weekId, Long weekdayId);
+    Page<FoodOrder> findByWorkingWeekId(Long weekId, Pageable pageable);
+
+    Page<FoodOrder> findByEmployeeId(Long employeeId, Pageable pageable);
+    Page<FoodOrder> findByEmployeeIdAndWorkingWeekId(
+            Long employeeId,
+            Long weekId,
+            Pageable pageable
+    );
+
+
 
     @Query("""
             SELECT fo FROM FoodOrder fo
@@ -31,4 +45,5 @@ public interface FoodOrderRepository extends BaseRepository<FoodOrder, Long> {
             @Param("weekdayId") Long weekdayId,
             @Param("foodId") Long foodId,
             @Param("status") OrderStatus status);
+    boolean existsByFoodId(Long foodId);
 }

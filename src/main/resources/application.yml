@@ -37,3 +37,8 @@ app:
   security:
     # Disable auth for local dev; set to true in production
     enabled: false
+
+    server:
+      error:
+        include-message: always
+        include-stacktrace: always

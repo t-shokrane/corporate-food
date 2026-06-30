@@ -13,6 +13,8 @@ import com.corporate.food.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 
@@ -42,13 +44,33 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
     }
 
     public PagedResponse<FoodOrderResponse> findAll(FoodOrderFilterDTO filter) {
-        // TODO: Filter not applied — filter.weekId (and employeeId) ignored; repository uses findAll without predicates
-        var page = foodOrderRepository.findAll(toPageable(filter));
-        // TODO: GET list returns 500 — lazy-loaded employee/workingWeek/weekDay/food accessed during toFoodOrderResponse mapping
+
+        var pageable = toPageable(filter);
+
+        Page<FoodOrder> page;
+
+        if (filter.getEmployeeId() != null && filter.getWeekId() != null) {
+            // اگر هر دو هست
+            page = foodOrderRepository.findByEmployeeIdAndWorkingWeekId(
+                    filter.getEmployeeId(),
+                    filter.getWeekId(),
+                    pageable
+            );
+        }
+        else if (filter.getEmployeeId() != null) {
+            page = foodOrderRepository.findByEmployeeId(filter.getEmployeeId(), pageable);
+        }
+        else if (filter.getWeekId() != null) {
+            page = foodOrderRepository.findByWorkingWeekId(filter.getWeekId(), pageable);
+        }
+        else {
+            page = foodOrderRepository.findAll(pageable);
+        }
+
         var responsePage = page.map(entityMapper::toFoodOrderResponse);
+
         return PagedResponse.of(responsePage, responsePage.getContent());
     }
-
 
     public FoodOrderResponse findById(Long id) {
         return foodOrderRepository.findById(id)
@@ -105,10 +127,11 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
 
     @Transactional
     public void delete(Long id) {
-        // TODO: FoodOrder delete bug — uses existsById instead of findById; soft-deleted orders may pass exists check or delete may not load entity for soft-delete semantics
-        if (!foodOrderRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Order not found with id: " + id);
-        }
-        foodOrderRepository.deleteById(id);
+
+        var order = foodOrderRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Order not found with id: " + id));
+
+        foodOrderRepository.delete(order);
     }
-}
+    }

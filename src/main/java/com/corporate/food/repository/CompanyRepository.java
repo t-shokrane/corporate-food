@@ -18,4 +18,7 @@ public interface CompanyRepository extends BaseRepository<Company, Long> {
 
     Page<Company> findByNameContainingIgnoreCaseAndCompanyType(
             String name, CompanyType companyType, Pageable pageable);
+    boolean existsByParentCompanyId(Long parentCompanyId);
+
+    boolean existsByEmployeesIsNotEmptyAndId(Long id);
 }

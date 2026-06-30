@@ -71,15 +71,15 @@ public interface EntityMapper {
 
     void updateWeeklyMenuFromRequest(WeeklyMenuRequest request, @MappingTarget WeeklyMenu weeklyMenu);
     // TODO: POST broken — return type is Object instead of WeeklyMenu; MapStruct cannot map weekId/weekdayId/foodId to entity relations
-    Object toWeeklyMenu(WeeklyMenuRequest request);
+    WeeklyMenu toWeeklyMenu(WeeklyMenuRequest request);
 
     // TODO: POST broken — return type is Object instead of Food; callers must unsafe-cast, breaking create flow
-    Object toFood(FoodRequest request);
+    Food toFood(FoodRequest request);
 
     void updateFoodFromRequest(FoodRequest request, @MappingTarget Food food);
 
     void updateWorkingWeekFromRequest(WorkingWeekRequest request, @MappingTarget WorkingWeek workingWeek);
 
     // TODO: POST broken — return type is Object instead of WorkingWeek; callers must unsafe-cast, breaking create flow
-    Object toWorkingWeek(WorkingWeekRequest request);
+    WorkingWeek toWorkingWeek(WorkingWeekRequest request);
 }

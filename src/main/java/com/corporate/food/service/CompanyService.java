@@ -87,7 +87,17 @@ public class CompanyService extends BaseService<Company, Long> {
 
     @Transactional
     public void delete(Long id) {
-        // TODO: Delete integrity — deleting company breaks dependent employees, child companies, and orders; cascade or restrict delete required
-        deleteById(id);
+
+        Company company = findEntityById(id);
+
+        if (companyRepository.existsByParentCompanyId(id)) {
+            throw new BusinessException("Cannot delete company because it has child companies.");
+        }
+
+        if (companyRepository.existsByEmployeesIsNotEmptyAndId(id)) {
+            throw new BusinessException("Cannot delete company because it has employees.");
+        }
+
+        companyRepository.delete(company);
     }
-}
+    }
