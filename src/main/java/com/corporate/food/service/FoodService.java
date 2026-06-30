@@ -32,6 +32,7 @@ public class FoodService extends BaseService<Food, Long> {
     }
 
     public PagedResponse<FoodResponse> findAll(FoodFilterDTO filter) {
+        // TODO: Filter not applied — filter.enabled is ignored; repository uses findAll without enabled predicate
         var page = foodRepository.findAll(toPageable(filter));
         var responsePage = page.map(entityMapper::toFoodResponse);
         return PagedResponse.of(responsePage, responsePage.getContent());
@@ -45,6 +46,7 @@ public class FoodService extends BaseService<Food, Long> {
 
     @Transactional
     public FoodResponse create(FoodRequest request) {
+        // TODO: POST broken — entityMapper.toFood returns Object; unsafe cast may fail or produce invalid entity for save
         Food food = (Food) entityMapper.toFood(request);
         return entityMapper.toFoodResponse(foodRepository.save(food));
     }
@@ -61,6 +63,7 @@ public class FoodService extends BaseService<Food, Long> {
 
     @Transactional
     public void delete(Long id) {
+        // TODO: Delete integrity — hard delete breaks dependent weekly_menus and food_orders referencing this food; cascade or block delete required
         if (!foodRepository.existsById(id)) {
             throw new ResourceNotFoundException("Food not found with id: " + id);
         }

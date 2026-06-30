@@ -1,0 +1,759 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Corporate Food API",
+    "description": "Complete REST API collection for the Corporate Food Ordering System.\n\n**Base URL:** `{{baseUrl}}` (default `http://localhost:8081`)\n\n**Seed data** (from `V1__init_schema.sql`):\n| Resource | IDs / values |\n|---|---|\n| Companies | 1=گروه الین, 2=شرکت لمون, 3=شرکت الین, 4=شرکت شمس |\n| Employees | 1=admin1 (ADMIN), 2=manager1 (MANAGER), 3=emp1 (EMPLOYEE) — password: `password` |\n| Foods | 1–7 |\n| Working week | 1 (week 4, year 1405) |\n| Week days | 1=شنبه … 7=جمعه |\n| Food order | 1 (employee 1, week 1, day 1, food 1) |\n\n**Auth:** `app.security.enabled` defaults to `false` (no auth). When `true`, enable collection **Basic Auth** with `{{authUsername}}` / `{{authPassword}}`.\n\n**Response envelope:** All endpoints return `ApiResponse<T>` with `success`, `message`, `data`, `timestamp`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      { "key": "username", "value": "{{authUsername}}", "type": "string" },
+      { "key": "password", "value": "{{authPassword}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8081" },
+    { "key": "authUsername", "value": "emp1" },
+    { "key": "authPassword", "value": "password" },
+    { "key": "companyId", "value": "1" },
+    { "key": "employeeId", "value": "3" },
+    { "key": "foodId", "value": "1" },
+    { "key": "weekId", "value": "1" },
+    { "key": "weekdayId", "value": "2" },
+    { "key": "weeklyMenuId", "value": "1" },
+    { "key": "foodOrderId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Companies",
+      "description": "`CompanyController` — `/api/v1/companies`",
+      "item": [
+        {
+          "name": "List Companies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies?page=0&size=10&sortBy=id&sortDirection=ASC",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies"],
+              "query": [
+                { "key": "page", "value": "0", "description": "Page index (0-based)" },
+                { "key": "size", "value": "10", "description": "Page size (1–100)" },
+                { "key": "sortBy", "value": "id" },
+                { "key": "sortDirection", "value": "ASC", "description": "ASC or DESC" },
+                { "key": "name", "value": "الین", "description": "Optional: partial name filter", "disabled": true },
+                { "key": "companyType", "value": "HOLDING", "description": "Optional: HOLDING | SUBSIDIARY", "disabled": true }
+              ]
+            },
+            "description": "Paginated list with optional `name` and `companyType` filters."
+          }
+        },
+        {
+          "name": "Get Company by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/{{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", "{{companyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Company",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"شرکت نمونه\",\n  \"companyType\": \"SUBSIDIARY\",\n  \"parentCompanyId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies"]
+            },
+            "description": "`CompanyRequest`: name (required), companyType (HOLDING|SUBSIDIARY), parentCompanyId (optional)."
+          }
+        },
+        {
+          "name": "Update Company",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"شرکت نمونه (ویرایش شده)\",\n  \"companyType\": \"SUBSIDIARY\",\n  \"parentCompanyId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/{{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", "{{companyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Company",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/companies/{{companyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "companies", "{{companyId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employees",
+      "description": "`EmployeeController` — `/api/v1/employees`",
+      "item": [
+        {
+          "name": "List Employees",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees?page=0&size=10&sortBy=id&sortDirection=ASC",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sortBy", "value": "id" },
+                { "key": "sortDirection", "value": "ASC" },
+                { "key": "companyId", "value": "{{companyId}}", "description": "Optional filter (not applied in service yet)", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Employee by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "{{employeeId}}"]
+            }
+          }
+        },
+        {
+          "name": "List Employees by Company",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/company/{{companyId}}?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "company", "{{companyId}}"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"emp_new\",\n  \"password\": \"password123\",\n  \"firstName\": \"محمد\",\n  \"lastName\": \"رضایی\",\n  \"personnelCode\": \"2001\",\n  \"role\": \"EMPLOYEE\",\n  \"enabled\": true,\n  \"companyId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees"]
+            },
+            "description": "`EmployeeRequest`: username & role & companyId required. password min 6 chars on create."
+          }
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"emp1\",\n  \"password\": \"newpassword\",\n  \"firstName\": \"رضا\",\n  \"lastName\": \"کریمی\",\n  \"personnelCode\": \"1003\",\n  \"role\": \"EMPLOYEE\",\n  \"enabled\": true,\n  \"companyId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "{{employeeId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Employee",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/{{employeeId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "{{employeeId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Foods",
+      "description": "`FoodController` — `/api/v1/foods`",
+      "item": [
+        {
+          "name": "List Foods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/foods?page=0&size=10&sortBy=id&sortDirection=ASC",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "foods"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sortBy", "value": "id" },
+                { "key": "sortDirection", "value": "ASC" },
+                { "key": "enabled", "value": "true", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Enabled Foods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/foods/enabled?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "foods", "enabled"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Food by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/foods/{{foodId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "foods", "{{foodId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Food",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"خورشت بادمجان\",\n  \"description\": \"خورشت بادمجان با گوشت\",\n  \"price\": 1300000,\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/foods",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "foods"]
+            },
+            "description": "Price is in smallest currency unit (Rial)."
+          }
+        },
+        {
+          "name": "Update Food",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"قرمه سبزی\",\n  \"description\": \"غذای سنتی ایرانی با گوشت و سبزیجات (ویرایش شده)\",\n  \"price\": 1250000,\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/foods/{{foodId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "foods", "{{foodId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Food",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/foods/{{foodId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "foods", "{{foodId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Working Weeks",
+      "description": "`WorkingWeekController` — `/api/v1/working-weeks`",
+      "item": [
+        {
+          "name": "List Working Weeks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/working-weeks?page=0&size=10&sortBy=id&sortDirection=ASC",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "working-weeks"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sortBy", "value": "id" },
+                { "key": "sortDirection", "value": "ASC" },
+                { "key": "enabled", "value": "true", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Enabled Working Weeks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/working-weeks/enabled?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "working-weeks", "enabled"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Working Week by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/working-weeks/{{weekId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "working-weeks", "{{weekId}}"]
+            }
+          }
+        },
+        {
+          "name": "List Week Days",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/working-weeks/week-days?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "working-weeks", "week-days"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            },
+            "description": "Returns Persian calendar week days (شنبه=1 … جمعه=7)."
+          }
+        },
+        {
+          "name": "Create Working Week",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weekNumber\": 5,\n  \"persianYear\": 1405,\n  \"weekName\": \"هفته پنجم خرداد ۱۴۰۵\",\n  \"startDate\": \"2026-06-27\",\n  \"endDate\": \"2026-07-03\",\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/working-weeks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "working-weeks"]
+            }
+          }
+        },
+        {
+          "name": "Update Working Week",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weekNumber\": 4,\n  \"persianYear\": 1405,\n  \"weekName\": \"هفته چهارم خرداد ۱۴۰۵ (ویرایش شده)\",\n  \"startDate\": \"2026-06-20\",\n  \"endDate\": \"2026-06-26\",\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/working-weeks/{{weekId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "working-weeks", "{{weekId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Working Week",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/working-weeks/{{weekId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "working-weeks", "{{weekId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Weekly Menus",
+      "description": "`WeeklyMenuController` — `/api/v1/weekly-menus`",
+      "item": [
+        {
+          "name": "List Menus by Week",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weekly-menus/week/{{weekId}}?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weekly-menus", "week", "{{weekId}}"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Menus by Week and Day",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weekly-menus/week/{{weekId}}/day/{{weekdayId}}?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weekly-menus", "week", "{{weekId}}", "day", "{{weekdayId}}"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Weekly Menu by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weekly-menus/{{weeklyMenuId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weekly-menus", "{{weeklyMenuId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Weekly Menu",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weekId\": 1,\n  \"weekdayId\": 3,\n  \"foodId\": 4,\n  \"capacity\": 25,\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weekly-menus",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weekly-menus"]
+            },
+            "description": "Food must exist on menu for orders to succeed (DB trigger enforces capacity)."
+          }
+        },
+        {
+          "name": "Update Weekly Menu",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weekId\": 1,\n  \"weekdayId\": 1,\n  \"foodId\": 1,\n  \"capacity\": 60,\n  \"enabled\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weekly-menus/{{weeklyMenuId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weekly-menus", "{{weeklyMenuId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Weekly Menu",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weekly-menus/{{weeklyMenuId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weekly-menus", "{{weeklyMenuId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Food Orders",
+      "description": "`FoodOrderController` — `/api/v1/food-orders`\n\nOne order per employee per week-day (unique constraint). Food must be on the weekly menu for that day.",
+      "item": [
+        {
+          "name": "List Food Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/food-orders?page=0&size=10&sortBy=id&sortDirection=ASC",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "food-orders"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sortBy", "value": "id" },
+                { "key": "sortDirection", "value": "ASC" },
+                { "key": "employeeId", "value": "{{employeeId}}", "description": "Filter field exists but not applied in service", "disabled": true },
+                { "key": "weekId", "value": "{{weekId}}", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Food Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/food-orders/{{foodOrderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "food-orders", "{{foodOrderId}}"]
+            }
+          }
+        },
+        {
+          "name": "List Orders by Employee and Week",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/food-orders/employee/{{employeeId}}/week/{{weekId}}?page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "food-orders", "employee", "{{employeeId}}", "week", "{{weekId}}"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Place Food Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const json = pm.response.json();",
+                  "    if (json.data && json.data.id) {",
+                  "        pm.collectionVariables.set('foodOrderId', json.data.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"employeeId\": 3,\n  \"weekId\": 1,\n  \"weekdayId\": 2,\n  \"foodId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/food-orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "food-orders"]
+            },
+            "description": "Seed menu for week 1 / day 2: food 2 (قیمه). Use employee 3 (emp1) — employee 1 already has day 1 order.\n\n`FoodOrderRequest`: employeeId, weekId, weekdayId, foodId (all required)."
+          }
+        },
+        {
+          "name": "Cancel Food Order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/food-orders/{{foodOrderId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "food-orders", "{{foodOrderId}}", "cancel"]
+            },
+            "description": "Sets orderStatus to CANCELLED."
+          }
+        },
+        {
+          "name": "Delete Food Order",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/food-orders/{{foodOrderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "food-orders", "{{foodOrderId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workflows",
+      "description": "End-to-end request sequences for common scenarios.",
+      "item": [
+        {
+          "name": "Employee — Browse Menu & Place Order",
+          "item": [
+            {
+              "name": "1. Get Active Working Week",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/working-weeks/enabled?page=0&size=1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "working-weeks", "enabled"],
+                  "query": [
+                    { "key": "page", "value": "0" },
+                    { "key": "size", "value": "1" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "2. Get Today's Menu (Saturday = day 1)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/weekly-menus/week/{{weekId}}/day/1?page=0&size=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "weekly-menus", "week", "{{weekId}}", "day", "1"],
+                  "query": [
+                    { "key": "page", "value": "0" },
+                    { "key": "size", "value": "20" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "3. Place Order for emp1",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"employeeId\": 3,\n  \"weekId\": 1,\n  \"weekdayId\": 1,\n  \"foodId\": 3\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/food-orders",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "food-orders"]
+                },
+                "description": "Day 1 menu: food 1 or 3. Pick food not already ordered for that employee/day."
+              }
+            },
+            {
+              "name": "4. View My Orders This Week",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/food-orders/employee/3/week/{{weekId}}?page=0&size=10",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "food-orders", "employee", "3", "week", "{{weekId}}"],
+                  "query": [
+                    { "key": "page", "value": "0" },
+                    { "key": "size", "value": "10" }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin — Setup Week Menu",
+          "item": [
+            {
+              "name": "1. Create Working Week",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"weekNumber\": 6,\n  \"persianYear\": 1405,\n  \"weekName\": \"هفته ششم خرداد ۱۴۰۵\",\n  \"startDate\": \"2026-07-04\",\n  \"endDate\": \"2026-07-10\",\n  \"enabled\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/working-weeks",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "working-weeks"]
+                }
+              }
+            },
+            {
+              "name": "2. Add Food to Monday Menu",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"weekId\": 1,\n  \"weekdayId\": 3,\n  \"foodId\": 5,\n  \"capacity\": 30,\n  \"enabled\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/weekly-menus",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "weekly-menus"]
+                }
+              }
+            },
+            {
+              "name": "3. List All Menus for Week",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/weekly-menus/week/1?page=0&size=50",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "weekly-menus", "week", "1"],
+                  "query": [
+                    { "key": "page", "value": "0" },
+                    { "key": "size", "value": "50" }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

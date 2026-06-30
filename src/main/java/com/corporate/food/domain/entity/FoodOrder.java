@@ -1,7 +1,10 @@
 package com.corporate.food.domain.entity;
 
+import java.time.LocalDateTime;
+
 import com.corporate.food.domain.BaseDomain;
 import com.corporate.food.domain.enums.OrderStatus;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,7 +13,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +27,7 @@ import lombok.Setter;
         )
 )
 public class FoodOrder extends BaseDomain {
+
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "employee_id", nullable = false)

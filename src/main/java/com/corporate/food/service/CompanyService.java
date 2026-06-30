@@ -87,6 +87,7 @@ public class CompanyService extends BaseService<Company, Long> {
 
     @Transactional
     public void delete(Long id) {
+        // TODO: Delete integrity — deleting company breaks dependent employees, child companies, and orders; cascade or restrict delete required
         deleteById(id);
     }
 }

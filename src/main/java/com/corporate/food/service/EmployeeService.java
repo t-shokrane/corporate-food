@@ -36,9 +36,11 @@ public class EmployeeService extends BaseService<Employee, Long> {
 
 
     public PagedResponse<EmployeeResponse> findAll(EmployeeFilterDTO filter) {
+        // TODO: Filter not applied — filter.companyId is ignored; repository uses findAll without company predicate
         var pageable = toPageable(filter);
         var page = employeeRepository.findAll(pageable);
 
+        // TODO: GET list returns 500 — lazy-loaded company accessed during toEmployeeResponse mapping; null/soft-deleted company causes NPE
         var items = page.getContent()
                 .stream()
                 .map(entityMapper::toEmployeeResponse)

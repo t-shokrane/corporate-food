@@ -42,7 +42,9 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
     }
 
     public PagedResponse<FoodOrderResponse> findAll(FoodOrderFilterDTO filter) {
+        // TODO: Filter not applied — filter.weekId (and employeeId) ignored; repository uses findAll without predicates
         var page = foodOrderRepository.findAll(toPageable(filter));
+        // TODO: GET list returns 500 — lazy-loaded employee/workingWeek/weekDay/food accessed during toFoodOrderResponse mapping
         var responsePage = page.map(entityMapper::toFoodOrderResponse);
         return PagedResponse.of(responsePage, responsePage.getContent());
     }
@@ -103,6 +105,7 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
 
     @Transactional
     public void delete(Long id) {
+        // TODO: FoodOrder delete bug — uses existsById instead of findById; soft-deleted orders may pass exists check or delete may not load entity for soft-delete semantics
         if (!foodOrderRepository.existsById(id)) {
             throw new ResourceNotFoundException("Order not found with id: " + id);
         }

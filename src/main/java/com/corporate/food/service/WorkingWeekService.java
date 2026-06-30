@@ -62,6 +62,7 @@ public class WorkingWeekService extends BaseService<WorkingWeek, Long> {
 
     @Transactional
     public WorkingWeekResponse create(WorkingWeekRequest request) {
+        // TODO: POST broken — entityMapper.toWorkingWeek returns Object; unsafe cast may fail or produce invalid entity for save
         WorkingWeek workingWeek = (WorkingWeek) entityMapper.toWorkingWeek(request);
         return entityMapper.toWorkingWeekResponse(workingWeekRepository.save(workingWeek));
     }
@@ -81,6 +82,7 @@ public class WorkingWeekService extends BaseService<WorkingWeek, Long> {
 
     @Transactional
 public void delete(Long id) {
+    // TODO: Delete integrity — deleting working week orphans weekly_menus and food_orders with FK week_id; cascade or restrict delete required
     // ۱. پیدا کردن هفته کاری، اگر نبود خطا بده
     var workingWeek = workingWeekRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Working week", "id", id));
