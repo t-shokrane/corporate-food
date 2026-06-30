@@ -1,0 +1,15 @@
+### Get all food orders
+GET http://localhost:8081/api/v1/food-orders
+
+###
+
+### Place order
+POST http://localhost:8081/api/v1/food-orders
+Content-Type: application/json
+
+{
+  "employeeId": 1,
+  "weekId": 1,
+  "weekdayId": 1,
+  "foodId": 1
+}
