@@ -46,4 +46,33 @@ public interface FoodOrderRepository extends BaseRepository<FoodOrder, Long> {
             @Param("foodId") Long foodId,
             @Param("status") OrderStatus status);
     boolean existsByFoodId(Long foodId);
+    Page<FoodOrder> findByEmployeeIdAndWorkingWeekIdAndOrderStatus(
+            Long employeeId,
+            Long weekId,
+            OrderStatus orderStatus,
+            Pageable pageable
+    );
+
+    Page<FoodOrder> findByEmployeeIdAndOrderStatus(
+            Long employeeId,
+            OrderStatus orderStatus,
+            Pageable pageable
+    );
+
+    Page<FoodOrder> findByWorkingWeekIdAndOrderStatus(
+            Long weekId,
+            OrderStatus orderStatus,
+            Pageable pageable
+    );
+
+    Page<FoodOrder> findByOrderStatus(
+            OrderStatus orderStatus,
+            Pageable pageable
+    );
+    Optional<FoodOrder> findByEmployeeIdAndWorkingWeekIdAndWeekDayIdAndOrderStatus(
+            Long employeeId,
+            Long weekId,
+            Long weekdayId,
+            OrderStatus orderStatus
+    );
 }

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>سیستم سفارش غذا</title>
+</head>
+<body>
+
+<h2>سیستم سفارش غذای شرکت</h2>
+
+<label>کارمند:</label>
+
+<select id="employeeSelect" onchange="loadOrders()">
+</select>
+
+<br><br>
+<label>هفته:</label>
+<select id="weekSelect" onchange="loadFoods();loadOrders()"></select>
+
+<br><br>
+
+<label>روز:</label>
+<select id="daySelect" onchange="loadFoods();loadOrders()"></select>
+
+<br><br>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>شناسه</th>
+        <th>نام غذا</th>
+        <th>قیمت</th>
+        <th>عملیات</th>
+    </tr>
+    </thead>
+
+    <tbody id="foodTable">
+    </tbody>
+</table>
+
+<br><br>
+
+<h2>سفارش‌های ثبت شده</h2>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>کارمند</th>
+        <th>غذا</th>
+        <th>روز</th>
+        <th>عملیات</th>
+    </tr>
+    </thead>
+
+    <tbody id="orderTable">
+    </tbody>
+</table>
+
+<script>
+    // هفته‌ها
+    fetch('/api/v1/working-weeks')
+        .then(response => response.json())
+        .then(result => {
+
+            const weekSelect = document.getElementById("weekSelect");
+
+            weekSelect.innerHTML = "";
+
+            result.data.items.forEach(week => {
+
+                weekSelect.innerHTML += `
+                <option value="${week.id}">
+                    ${week.weekName}
+                </option>
+            `;
+
+            });
+
+
+        });
+    loadFoods();
+    loadOrders();
+
+
+    // روزهای هفته
+    fetch('/api/v1/working-weeks/week-days')
+        .then(response => response.json())
+        .then(result => {
+
+            const daySelect = document.getElementById("daySelect");
+
+            daySelect.innerHTML = "";
+
+            result.data.items.forEach(day => {
+
+                daySelect.innerHTML += `
+                <option value="${day.id}">
+                    ${day.persianName}
+                </option>
+            `;
+
+            });
+
+        });
+    loadFoods();
+    loadOrders();
+    function loadFoods() {
+
+        const weekId = document.getElementById("weekSelect").value;
+        const weekdayId = document.getElementById("daySelect").value;
+
+        if (!weekId || !weekdayId) {
+            return;
+        }
+
+        fetch(`/api/v1/weekly-menus/week/${weekId}/day/${weekdayId}`)
+            .then(response => response.json())
+            .then(result => {
+
+                const tbody = document.getElementById("foodTable");
+
+                tbody.innerHTML = "";
+
+                result.data.items.forEach(menu => {
+
+                    tbody.innerHTML += `
+                    <tr>
+                        <td>${menu.foodId}</td>
+                        <td>${menu.foodName}</td>
+                        <td>${menu.capacity}</td>
+                        <td>
+                            <button onclick="placeOrder(${menu.foodId})">
+                                ثبت سفارش
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                });
+
+            });
+
+    }
+
+
+    // ---------- کارمندها ----------
+    fetch('/api/v1/employees')
+        .then(response => response.json())
+        .then(result => {
+
+            const select = document.getElementById("employeeSelect");
+
+            select.innerHTML = "";
+
+            result.data.items.forEach(employee => {
+
+                select.innerHTML += `
+                <option value="${employee.id}">
+                    ${employee.firstName} ${employee.lastName}
+                </option>
+            `;
+
+            });
+
+            loadOrders();
+
+        });
+
+
+    // ---------- سفارش‌ها ----------
+    function loadOrders() {
+
+        const employeeId = document.getElementById("employeeSelect").value;
+
+        const weekId = document.getElementById("weekSelect").value;
+
+        fetch("/api/v1/food-orders/employee/" + employeeId + "/week/" + weekId)
+            .then(response => response.json())
+            .then(result => {
+
+                const tbody = document.getElementById("orderTable");
+
+                tbody.innerHTML = "";
+
+                result.data.items.forEach(order => {
+
+                    tbody.innerHTML += `
+<tr>
+    <td>${order.employeeName}</td>
+    <td>${order.foodName}</td>
+    <td>${order.weekdayPersianName}</td>
+    <td>
+        <button onclick="cancelOrder(${order.id})">
+            لغو سفارش
+        </button>
+    </td>
+</tr>
+`;
+                });
+
+            });
+
+    }
+    function placeOrder(foodId) {
+
+        const employeeId = document.getElementById("employeeSelect").value;
+        const weekId = document.getElementById("weekSelect").value;
+        const weekdayId = document.getElementById("daySelect").value;
+
+        fetch("/api/v1/food-orders", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                employeeId: Number(employeeId),
+                weekId: Number(weekId),
+                weekdayId: Number(weekdayId),
+                foodId: Number(foodId)
+            })
+        })
+            .then(response => response.json())
+            .then(result => {
+
+                if(result.success){
+
+                    alert("سفارش با موفقیت ثبت شد.");
+
+                    loadOrders();
+
+                }else{
+
+                    alert(result.message);
+
+                }
+
+            });
+
+    }
+    function cancelOrder(orderId){
+
+        if(!confirm("آیا از لغو سفارش مطمئن هستید؟")){
+            return;
+        }
+
+        fetch("/api/v1/food-orders/" + orderId + "/cancel",{
+            method:"POST"
+        })
+            .then(response=>response.json())
+            .then(result=>{
+
+                if(result.success){
+
+                    alert("سفارش لغو شد.");
+
+                    loadOrders();
+
+                }else{
+
+                    alert(result.message);
+
+                }
+
+            });
+
+    }
+</script>
+
+</body>
+</html>

@@ -53,7 +53,10 @@ public interface EntityMapper {
     // TODO: DTO mapping unsafe with soft-deleted relations — workingWeek/weekDay/food may be soft-deleted; causes NPE or LazyInitializationException on list mapping
     @Mapping(target = "weekId", source = "workingWeek.id")
     @Mapping(target = "weekdayId", source = "weekDay.id")
-    @Mapping(target = "weekdayPersianName", source = "weekDay.persianName")
+    @Named("safeWeekdayName")
+    default String safeWeekdayName(WeekDay weekDay) {
+        return weekDay != null ? weekDay.getPersianName() : null;
+    }
     @Mapping(target = "foodId", source = "food.id")
     @Mapping(target = "foodName", source = "food.name")
     @Mapping(target = "registeredOrderCount", ignore = true)

@@ -50,6 +50,7 @@ public class FoodOrderController extends BaseController {
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<FoodOrderResponse> placeOrder(@Valid @RequestBody FoodOrderRequest request) {
         return created(foodOrderService.placeOrder(request));
+
     }
 
     @PostMapping("/{id}/cancel")
