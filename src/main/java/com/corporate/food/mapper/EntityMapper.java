@@ -7,82 +7,217 @@ import com.corporate.food.domain.entity.FoodOrder;
 import com.corporate.food.domain.entity.WeekDay;
 import com.corporate.food.domain.entity.WeeklyMenu;
 import com.corporate.food.domain.entity.WorkingWeek;
-import com.corporate.food.dto.*;
+import com.corporate.food.dto.CompanyResponse;
+import com.corporate.food.dto.EmployeeResponse;
+import com.corporate.food.dto.FoodOrderResponse;
+import com.corporate.food.dto.FoodRequest;
+import com.corporate.food.dto.FoodResponse;
+import com.corporate.food.dto.WeekDayResponse;
+import com.corporate.food.dto.WeeklyMenuRequest;
+import com.corporate.food.dto.WeeklyMenuResponse;
+import com.corporate.food.dto.WorkingWeekRequest;
+import com.corporate.food.dto.WorkingWeekResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.ReportingPolicy;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.ReportingPolicy;
+import org.mapstruct.Named;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+
+@Mapper(
+        componentModel = "spring",
+        unmappedTargetPolicy = ReportingPolicy.IGNORE
+)
 public interface EntityMapper {
+
 
     @Named("employeeFullName")
     default String employeeFullName(Employee employee) {
+
         if (employee == null) {
             return null;
         }
+
         String firstName = employee.getFirstName();
         String lastName = employee.getLastName();
+
         if (firstName == null && lastName == null) {
             return null;
         }
+
         if (firstName == null) {
             return lastName;
         }
+
         if (lastName == null) {
             return firstName;
         }
+
         return firstName + " " + lastName;
     }
 
-    @Mapping(target = "parentCompanyId", source = "parentCompany.id")
+
+    // Company
+
+    @Mapping(
+            target = "parentCompanyId",
+            source = "parentCompany.id"
+    )
     CompanyResponse toCompanyResponse(Company company);
 
-    // TODO: DTO mapping unsafe with soft-deleted relations — company may be soft-deleted; null-check or fetch active company before mapping id/name
-    @Mapping(target = "companyId", source = "company.id")
-    @Mapping(target = "companyName", source = "company.name")
+
+
+    // Employee
+
+    @Mapping(
+            target = "companyId",
+            source = "company.id"
+    )
+    @Mapping(
+            target = "companyName",
+            source = "company.name"
+    )
     EmployeeResponse toEmployeeResponse(Employee employee);
+
+
+
+    // Food
 
     FoodResponse toFoodResponse(Food food);
 
-    WorkingWeekResponse toWorkingWeekResponse(WorkingWeek workingWeek);
 
-    WeekDayResponse toWeekDayResponse(WeekDay weekDay);
 
-    // TODO: DTO mapping unsafe with soft-deleted relations — workingWeek/weekDay/food may be soft-deleted; causes NPE or LazyInitializationException on list mapping
-    @Mapping(target = "weekId", source = "workingWeek.id")
-    @Mapping(target = "weekdayId", source = "weekDay.id")
-    @Named("safeWeekdayName")
-    default String safeWeekdayName(WeekDay weekDay) {
-        return weekDay != null ? weekDay.getPersianName() : null;
-    }
-    @Mapping(target = "foodId", source = "food.id")
-    @Mapping(target = "foodName", source = "food.name")
-    @Mapping(target = "registeredOrderCount", ignore = true)
-    WeeklyMenuResponse toWeeklyMenuResponse(WeeklyMenu weeklyMenu);
+    // Working Week
 
-    // TODO: DTO mapping unsafe with soft-deleted relations — employee/workingWeek/weekDay/food may be soft-deleted; causes NPE or LazyInitializationException on list mapping
-    @Mapping(target = "employeeId", source = "employee.id")
-    @Mapping(target = "employeeName", source = "employee", qualifiedByName = "employeeFullName")
-    @Mapping(target = "weekId", source = "workingWeek.id")
-    @Mapping(target = "weekdayId", source = "weekDay.id")
-    @Mapping(target = "weekdayPersianName", source = "weekDay.persianName")
-    @Mapping(target = "foodId", source = "food.id")
-    @Mapping(target = "foodName", source = "food.name")
-    FoodOrderResponse toFoodOrderResponse(FoodOrder order);
+    WorkingWeekResponse toWorkingWeekResponse(
+            WorkingWeek workingWeek
+    );
 
-    void updateWeeklyMenuFromRequest(WeeklyMenuRequest request, @MappingTarget WeeklyMenu weeklyMenu);
-    // TODO: POST broken — return type is Object instead of WeeklyMenu; MapStruct cannot map weekId/weekdayId/foodId to entity relations
-    WeeklyMenu toWeeklyMenu(WeeklyMenuRequest request);
 
-    // TODO: POST broken — return type is Object instead of Food; callers must unsafe-cast, breaking create flow
-    Food toFood(FoodRequest request);
 
-    void updateFoodFromRequest(FoodRequest request, @MappingTarget Food food);
+    // Week Day
 
-    void updateWorkingWeekFromRequest(WorkingWeekRequest request, @MappingTarget WorkingWeek workingWeek);
+    WeekDayResponse toWeekDayResponse(
+            WeekDay weekDay
+    );
 
-    // TODO: POST broken — return type is Object instead of WorkingWeek; callers must unsafe-cast, breaking create flow
-    WorkingWeek toWorkingWeek(WorkingWeekRequest request);
+
+
+    // Weekly Menu  ⭐ مشکل اصلی اینجا بود
+
+    @Mapping(
+            target = "weekId",
+            source = "workingWeek.id"
+    )
+    @Mapping(
+            target = "weekdayId",
+            source = "weekDay.id"
+    )
+    @Mapping(
+            target = "weekdayPersianName",
+            source = "weekDay.persianName"
+    )
+    @Mapping(
+            target = "foodId",
+            source = "food.id"
+    )
+    @Mapping(
+            target = "foodName",
+            source = "food.name"
+    )
+    @Mapping(
+            target = "registeredOrderCount",
+            ignore = true
+    )
+    WeeklyMenuResponse toWeeklyMenuResponse(
+            WeeklyMenu weeklyMenu
+    );
+
+
+
+    // Food Order
+
+    @Mapping(
+            target = "employeeId",
+            source = "employee.id"
+    )
+    @Mapping(
+            target = "employeeName",
+            source = "employee",
+            qualifiedByName = "employeeFullName"
+    )
+    @Mapping(
+            target = "weekId",
+            source = "workingWeek.id"
+    )
+    @Mapping(
+            target = "weekdayId",
+            source = "weekDay.id"
+    )
+    @Mapping(
+            target = "weekdayPersianName",
+            source = "weekDay.persianName"
+    )
+    @Mapping(
+            target = "foodId",
+            source = "food.id"
+    )
+    @Mapping(
+            target = "foodName",
+            source = "food.name"
+    )
+    FoodOrderResponse toFoodOrderResponse(
+            FoodOrder order
+    );
+
+
+
+    // Update Weekly Menu
+
+    void updateWeeklyMenuFromRequest(
+            WeeklyMenuRequest request,
+            @MappingTarget WeeklyMenu weeklyMenu
+    );
+
+
+    // Create Weekly Menu
+
+    WeeklyMenu toWeeklyMenu(
+            WeeklyMenuRequest request
+    );
+
+
+
+    // Create Food
+
+    Food toFood(
+            FoodRequest request
+    );
+
+
+
+    // Update Food
+
+    void updateFoodFromRequest(
+            FoodRequest request,
+            @MappingTarget Food food
+    );
+
+
+
+    // Update Working Week
+
+    void updateWorkingWeekFromRequest(
+            WorkingWeekRequest request,
+            @MappingTarget WorkingWeek workingWeek
+    );
+
+
+
+    // Create Working Week
+
+    WorkingWeek toWorkingWeek(
+            WorkingWeekRequest request
+    );
+
 }

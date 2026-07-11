@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fa">
+<link rel="stylesheet" href="/css/style.css">
+<head>
+    <meta charset="UTF-8">
+    <title>مدیریت غذاها</title>
+</head>
+
+<body>
+
+<h2>مدیریت غذاها</h2>
+
+<hr>
+
+<h3>ثبت غذای جدید</h3>
+
+<input id="name" placeholder="نام غذا">
+
+<br><br>
+
+<input id="description" placeholder="توضیحات">
+
+<br><br>
+
+<input id="price" type="number" placeholder="قیمت">
+
+<br><br>
+
+<select id="enabled">
+
+    <option value="true">
+        فعال
+    </option>
+
+    <option value="false">
+        غیرفعال
+    </option>
+
+</select>
+
+<br><br>
+
+<button onclick="saveFood()">
+    ثبت غذا
+</button>
+
+
+<hr>
+
+
+<h3>لیست غذاها</h3>
+
+
+<table border="1">
+
+    <thead>
+
+    <tr>
+        <th>شناسه</th>
+        <th>نام</th>
+        <th>توضیحات</th>
+        <th>قیمت</th>
+        <th>وضعیت</th>
+        <th>عملیات</th>
+    </tr>
+
+    </thead>
+
+
+    <tbody id="foodTable">
+
+    </tbody>
+
+
+</table>
+
+
+<script>
+
+
+    loadFoods();
+
+
+
+    function loadFoods(){
+
+
+        fetch("/api/v1/foods")
+
+            .then(r=>r.json())
+
+            .then(result=>{
+
+
+                const tbody=document.getElementById("foodTable");
+
+
+                tbody.innerHTML="";
+
+
+                result.data.items.forEach(food=>{
+
+
+                    tbody.innerHTML += `
+
+<tr>
+
+<td>${food.id}</td>
+
+<td>${food.name}</td>
+
+<td>${food.description ?? ""}</td>
+
+<td>${food.price}</td>
+
+<td>${food.enabled}</td>
+
+
+<td>
+
+<button onclick="deleteFood(${food.id})">
+حذف
+</button>
+
+</td>
+
+
+</tr>
+
+`;
+
+
+                });
+
+
+            });
+
+
+    }
+
+
+
+
+
+    function saveFood(){
+
+
+        fetch("/api/v1/foods",{
+
+
+            method:"POST",
+
+
+            headers:{
+
+
+                "Content-Type":"application/json"
+
+
+            },
+
+
+            body:JSON.stringify({
+
+
+                name:document.getElementById("name").value,
+
+
+                description:document.getElementById("description").value,
+
+
+                price:Number(document.getElementById("price").value),
+
+
+                enabled:document.getElementById("enabled").value === "true"
+
+
+            })
+
+
+        })
+
+
+            .then(r=>r.json())
+
+
+            .then(result=>{
+
+
+                if(result.success){
+
+
+                    alert("غذا ثبت شد");
+
+
+                    loadFoods();
+
+
+                }else{
+
+
+                    alert(result.message);
+
+
+                }
+
+
+            });
+
+
+    }
+
+
+
+
+
+
+    function deleteFood(id){
+
+
+        if(!confirm("حذف شود؟")){
+
+            return;
+
+        }
+
+
+        fetch("/api/v1/foods/"+id,{
+
+            method:"DELETE"
+
+        })
+
+
+            .then(r=>r.json())
+
+            .then(result=>{
+
+
+                if(result.success){
+
+
+                    alert("حذف شد");
+
+
+                    loadFoods();
+
+
+                }else{
+
+
+                    alert(result.message);
+
+
+                }
+
+
+            });
+
+
+    }
+
+
+</script>
+
+
+</body>
+
+</html>

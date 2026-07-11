@@ -11,8 +11,19 @@ public class AdminController {
 
     @GetMapping
     public String index(Model model) {
+
         model.addAttribute("title", "Corporate Food Admin");
         model.addAttribute("apiBase", "/api/v1");
-        return "admin/index";
+
+        return "admin/admin-panel";
     }
+
+
+    @GetMapping("/employees-page")
+    public String employeesPage() {
+
+        return "admin/employee";
+
+    }
+
 }

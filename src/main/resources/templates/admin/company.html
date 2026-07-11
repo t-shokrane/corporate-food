@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fa">
+<link rel="stylesheet" href="/css/style.css">
+<head>
+    <meta charset="UTF-8">
+    <title>مدیریت شرکت‌ها</title>
+</head>
+<body>
+
+<h2>مدیریت شرکت‌ها</h2>
+
+<label>نام شرکت:</label>
+<input type="text" id="companyName">
+
+<br><br>
+
+<label>نوع شرکت:</label>
+<select id="companyType">
+    <option value="MAIN">MAIN</option>
+    <option value="SUBSIDIARY">SUBSIDIARY</option>
+</select>
+
+<br><br>
+
+<button onclick="saveCompany()">ثبت شرکت</button>
+
+<hr>
+
+<h3>لیست شرکت‌ها</h3>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>شناسه</th>
+        <th>نام شرکت</th>
+        <th>نوع</th>
+        <th>عملیات</th>
+    </tr>
+    </thead>
+
+    <tbody id="companyTable">
+
+    </tbody>
+
+</table>
+
+<script>
+
+    loadCompanies();
+
+    function loadCompanies(){
+
+        fetch("/api/v1/companies")
+            .then(response => response.json())
+            .then(result => {
+
+                const tbody = document.getElementById("companyTable");
+
+                tbody.innerHTML = "";
+
+                result.data.items.forEach(company => {
+
+                    tbody.innerHTML += `
+                <tr>
+                    <td>${company.id}</td>
+                    <td>${company.name}</td>
+                    <td>${company.companyType}</td>
+
+                    <td>
+                        <button onclick="deleteCompany(${company.id})">
+                            حذف
+                        </button>
+                    </td>
+
+                </tr>
+                `;
+
+                });
+
+            });
+
+    }
+
+    function saveCompany(){
+
+        const name=document.getElementById("companyName").value;
+
+        const type=document.getElementById("companyType").value;
+
+        fetch("/api/v1/companies",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                name:name,
+
+                companyType:type
+
+            })
+
+        })
+            .then(response=>response.json())
+            .then(result=>{
+
+                if(result.success){
+
+                    alert("شرکت ثبت شد.");
+
+                    document.getElementById("companyName").value="";
+
+                    loadCompanies();
+
+                }else{
+
+                    alert(result.message);
+
+                }
+
+            });
+
+    }
+
+    function deleteCompany(id){
+
+        if(!confirm("آیا حذف شود؟")){
+            return;
+        }
+
+        fetch("/api/v1/companies/"+id,{
+
+            method:"DELETE"
+
+        })
+            .then(response=>response.json())
+            .then(result=>{
+
+                if(result.success){
+
+                    alert("حذف شد.");
+
+                    loadCompanies();
+
+                }else{
+
+                    alert(result.message);
+
+                }
+
+            });
+
+    }
+
+</script>
+
+</body>
+</html>

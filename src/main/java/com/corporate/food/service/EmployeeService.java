@@ -34,14 +34,27 @@ public class EmployeeService extends BaseService<Employee, Long> {
         return "Employee";
     }
 
-
     public PagedResponse<EmployeeResponse> findAll(EmployeeFilterDTO filter) {
 
         var pageable = toPageable(filter);
 
-        var page = filter.getCompanyId() == null
-                ? employeeRepository.findAll(pageable)
-                : employeeRepository.findByCompanyId(filter.getCompanyId(), pageable);
+        var page = employeeRepository.findAll(pageable);
+
+        if (filter.getCompanyId() != null) {
+            page = employeeRepository.findByCompanyId(
+                    filter.getCompanyId(),
+                    pageable
+            );
+        }
+
+        if (filter.getUsername() != null &&
+                !filter.getUsername().isBlank()) {
+
+            page = employeeRepository.findByUsernameContainingIgnoreCase(
+                    filter.getUsername(),
+                    pageable
+            );
+        }
 
         var items = page.getContent()
                 .stream()
@@ -50,48 +63,62 @@ public class EmployeeService extends BaseService<Employee, Long> {
 
         return PagedResponse.of(page, items);
     }
+
     public EmployeeResponse findById(Long id) {
         return entityMapper.toEmployeeResponse(findEntityById(id));
-
     }
 
     @Transactional
     public EmployeeResponse create(EmployeeRequest request) {
-        Company company = companyService.findEntityById(request.getCompanyId());
+
+        Company company =
+                companyService.findEntityById(request.getCompanyId());
 
         Employee employee = new Employee();
+
         employee.setUsername(request.getUsername());
-        employee.setPassword(passwordEncoder.encode(request.getPassword()));
+        employee.setPassword(
+                passwordEncoder.encode(request.getPassword()));
         employee.setFirstName(request.getFirstName());
         employee.setLastName(request.getLastName());
         employee.setPersonnelCode(request.getPersonnelCode());
         employee.setRole(request.getRole());
-        employee.setEnabled(true);
+        employee.setEnabled(request.getEnabled());
         employee.setCompany(company);
 
         Employee saved = employeeRepository.save(employee);
 
         return entityMapper.toEmployeeResponse(saved);
-
     }
 
     @Transactional
-    public EmployeeResponse update(Long id, EmployeeRequest request) {
+    public EmployeeResponse update(Long id,
+                                   EmployeeRequest request) {
+
         Employee employee = findEntityById(id);
+
+        Company company =
+                companyService.findEntityById(request.getCompanyId());
+
+        employee.setUsername(request.getUsername());
+
+        if (request.getPassword() != null &&
+                !request.getPassword().isBlank()) {
+
+            employee.setPassword(
+                    passwordEncoder.encode(request.getPassword()));
+        }
 
         employee.setFirstName(request.getFirstName());
         employee.setLastName(request.getLastName());
         employee.setPersonnelCode(request.getPersonnelCode());
         employee.setRole(request.getRole());
-
-        if (request.getPassword() != null) {
-            employee.setPassword(passwordEncoder.encode(request.getPassword()));
-        }
+        employee.setEnabled(request.getEnabled());
+        employee.setCompany(company);
 
         Employee updated = employeeRepository.save(employee);
 
         return entityMapper.toEmployeeResponse(updated);
-
     }
 
     @Transactional

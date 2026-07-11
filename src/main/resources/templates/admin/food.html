@@ -1,12 +1,22 @@
 <!DOCTYPE html>
 <html lang="fa">
+<link rel="stylesheet" href="/css/style.css">
 <head>
+
     <meta charset="UTF-8">
     <title>سیستم سفارش غذا</title>
 </head>
 <body>
 
 <h2>سیستم سفارش غذای شرکت</h2>
+<label>نوع کاربر:</label>
+
+<select id="roleSelect" onchange="loadOrders()">
+    <option value="ADMIN">Admin</option>
+    <option value="EMPLOYEE">Employee</option>
+</select>
+
+<br>
 
 <label>کارمند:</label>
 
@@ -45,6 +55,7 @@
 <table border="1">
     <thead>
     <tr>
+
         <th>کارمند</th>
         <th>غذا</th>
         <th>روز</th>
@@ -170,11 +181,30 @@
     // ---------- سفارش‌ها ----------
     function loadOrders() {
 
+        const role = document.getElementById("roleSelect").value;
+
         const employeeId = document.getElementById("employeeSelect").value;
 
         const weekId = document.getElementById("weekSelect").value;
 
-        fetch("/api/v1/food-orders/employee/" + employeeId + "/week/" + weekId)
+
+        let url;
+
+
+        if (role === "ADMIN") {
+
+            // ادمین: همه سفارش‌ها
+            url = "/api/v1/food-orders?role=ADMIN";
+
+        } else {
+
+            // کارمند: فقط سفارش خودش
+            url = "/api/v1/food-orders/employee/" + employeeId + "/week/" + weekId;
+
+        }
+
+
+        fetch(url)
             .then(response => response.json())
             .then(result => {
 
@@ -182,20 +212,22 @@
 
                 tbody.innerHTML = "";
 
+
                 result.data.items.forEach(order => {
 
                     tbody.innerHTML += `
-<tr>
-    <td>${order.employeeName}</td>
-    <td>${order.foodName}</td>
-    <td>${order.weekdayPersianName}</td>
-    <td>
-        <button onclick="cancelOrder(${order.id})">
-            لغو سفارش
-        </button>
-    </td>
-</tr>
-`;
+                <tr>
+                    <td>${order.employeeName}</td>
+                    <td>${order.foodName}</td>
+                    <td>${order.weekdayPersianName}</td>
+                    <td>
+                        <button onclick="cancelOrder(${order.id})">
+                            لغو سفارش
+                        </button>
+                    </td>
+                </tr>
+                `;
+
                 });
 
             });

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fa" xmlns:th="http://www.thymeleaf.org">
+<link rel="stylesheet" href="/css/style.css">
+<head>
+    <meta charset="UTF-8">
+    <title>مدیریت سفارش‌ها</title>
+</head>
+
+
+<body>
+
+
+<h2>
+    مدیریت سفارش‌های غذا
+</h2>
+
+
+<table border="1">
+
+    <thead>
+
+    <tr>
+
+        <th>کارمند</th>
+
+        <th>غذا</th>
+
+        <th>روز</th>
+
+        <th>وضعیت</th>
+
+        <th>عملیات</th>
+
+    </tr>
+
+    </thead>
+
+
+    <tbody>
+
+
+    <tr th:each="order : ${orders}">
+
+
+        <td th:text="${order.employeeName}"></td>
+
+
+        <td th:text="${order.foodName}"></td>
+
+
+        <td th:text="${order.weekdayPersianName}"></td>
+
+
+        <td th:text="${order.orderStatus}"></td>
+
+        <td>
+
+            <button th:onclick="|cancelOrder(${order.id})|">
+                لغو سفارش
+            </button>
+
+        </td>
+
+
+    </tr>
+
+
+    </tbody>
+
+
+</table>
+<script>
+
+    function cancelOrder(id){
+
+
+        if(!confirm("آیا از لغو سفارش مطمئن هستید؟")){
+            return;
+        }
+
+
+        fetch("/api/v1/food-orders/" + id + "/cancel",{
+
+            method:"POST"
+
+        })
+            .then(response => response.json())
+            .then(result => {
+
+
+                if(result.success){
+
+                    alert("سفارش لغو شد");
+
+                    location.reload();
+
+                }else{
+
+                    alert(result.message);
+
+                }
+
+
+            });
+
+
+    }
+
+
+</script>
+
+</body>
+
+</html>

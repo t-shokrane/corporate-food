@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fa">
+<link rel="stylesheet" href="/css/style.css">
+<head>
+    <meta charset="UTF-8">
+    <title>مدیریت منوی هفتگی</title>
+</head>
+
+<body>
+
+<h2>🗂️ مدیریت منوی هفتگی</h2>
+
+<hr>
+
+<h3>ثبت منوی جدید</h3>
+
+<label>هفته:</label>
+<select id="weekSelect"></select>
+
+<br><br>
+
+<label>روز:</label>
+<select id="daySelect"></select>
+
+<br><br>
+
+<label>غذا:</label>
+<select id="foodSelect"></select>
+
+<br><br>
+
+<label>ظرفیت:</label>
+<input id="capacity" type="number">
+
+<br><br>
+
+<select id="enabled">
+    <option value="true">فعال</option>
+    <option value="false">غیرفعال</option>
+</select>
+
+<br><br>
+
+<button onclick="saveMenu()">
+    ثبت منو
+</button>
+
+<hr>
+
+<h3>لیست منوهای هفتگی</h3>
+
+<table border="1">
+
+    <thead>
+
+    <tr>
+
+        <th>شناسه</th>
+        <th>هفته</th>
+        <th>روز</th>
+        <th>غذا</th>
+        <th>ظرفیت</th>
+        <th>وضعیت</th>
+        <th>عملیات</th>
+
+    </tr>
+
+    </thead>
+
+    <tbody id="menuTable">
+
+    </tbody>
+
+</table>
+
+<script>
+
+    loadWeeks();
+    loadDays();
+    loadFoods();
+    loadMenus();
+
+
+    //================ هفته ها ==================
+
+    function loadWeeks(){
+
+        fetch("/api/v1/working-weeks")
+
+            .then(r=>r.json())
+
+            .then(result=>{
+
+                const select=document.getElementById("weekSelect");
+
+                select.innerHTML="";
+
+                result.data.items.forEach(week=>{
+
+                    select.innerHTML += `
+<option value="${week.id}">
+${week.weekName}
+</option>
+`;
+
+                });
+
+            });
+
+    }
+
+
+
+    //================ روزها ==================
+
+    function loadDays(){
+
+        fetch("/api/v1/working-weeks/week-days")
+
+            .then(r=>r.json())
+
+            .then(result=>{
+
+                const select=document.getElementById("daySelect");
+
+                select.innerHTML="";
+
+                result.data.items.forEach(day=>{
+
+                    select.innerHTML += `
+<option value="${day.id}">
+${day.persianName}
+</option>
+`;
+
+                });
+
+            });
+
+    }
+
+
+
+    //================ غذاها ==================
+
+    function loadFoods(){
+
+        fetch("/api/v1/foods")
+
+            .then(r=>r.json())
+
+            .then(result=>{
+
+                const select=document.getElementById("foodSelect");
+
+                select.innerHTML="";
+
+                result.data.items.forEach(food=>{
+
+                    select.innerHTML += `
+<option value="${food.id}">
+${food.name}
+</option>
+`;
+
+                });
+
+            });
+
+    }
+
+
+
+    //================ لیست منو ==================
+
+    function loadMenus(){
+
+        const weekId=document.getElementById("weekSelect").value;
+
+        if(!weekId){
+
+            return;
+
+        }
+
+        fetch("/api/v1/weekly-menus/week/"+weekId)
+
+            .then(r=>r.json())
+
+            .then(result=>{
+
+                const tbody=document.getElementById("menuTable");
+
+                tbody.innerHTML="";
+
+                result.data.items.forEach(menu=>{
+
+                    tbody.innerHTML +=`
+
+<tr>
+
+<td>${menu.id}</td>
+
+<td>${menu.weekId}</td>
+
+<td>${menu.weekdayPersianName}</td>
+
+<td>${menu.foodName}</td>
+
+<td>${menu.capacity}</td>
+
+<td>${menu.enabled}</td>
+
+<td>
+
+<button onclick="deleteMenu(${menu.id})">
+
+حذف
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+                });
+
+            });
+
+    }
+
+
+
+    //================ ثبت ==================
+
+    function saveMenu(){
+
+        fetch("/api/v1/weekly-menus",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                weekId:Number(document.getElementById("weekSelect").value),
+
+                weekdayId:Number(document.getElementById("daySelect").value),
+
+                foodId:Number(document.getElementById("foodSelect").value),
+
+                capacity:Number(document.getElementById("capacity").value),
+
+                enabled:document.getElementById("enabled").value==="true"
+
+            })
+
+        })
+
+            .then(r=>r.json())
+
+            .then(result=>{
+
+                if(result.success){
+
+                    alert("منو ثبت شد.");
+
+                    loadMenus();
+
+                }else{
+
+                    alert(result.message);
+
+                }
+
+            });
+
+    }
+
+
+
+    //================ حذف ==================
+
+    function deleteMenu(id){
+
+        if(!confirm("آیا حذف شود؟")){
+
+            return;
+
+        }
+
+        fetch("/api/v1/weekly-menus/"+id,{
+
+            method:"DELETE"
+
+        })
+
+            .then(r=>r.json())
+
+            .then(result=>{
+
+                if(result.success){
+
+                    alert("حذف شد.");
+
+                    loadMenus();
+
+                }else{
+
+                    alert(result.message);
+
+                }
+
+            });
+
+    }
+
+
+
+    //================ تغییر هفته ==================
+
+    document.getElementById("weekSelect").addEventListener("change",function(){
+
+        loadMenus();
+
+    });
+
+</script>
+
+</body>
+</html>

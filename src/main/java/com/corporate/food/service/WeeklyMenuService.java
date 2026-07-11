@@ -50,8 +50,32 @@ public class WeeklyMenuService extends BaseService<WeeklyMenu, Long> {
                         filter.getWeekId(), pageable)
                           : weeklyMenuRepository.findAll(pageable);
 
-        var responsePage = page.map(entityMapper::toWeeklyMenuResponse);
+        var responsePage = page.map(menu -> {
 
+            System.out.println("========== WEEKLY MENU TEST ==========");
+            System.out.println("ID: " + menu.getId());
+            System.out.println("WORKING WEEK: " + menu.getWorkingWeek());
+            System.out.println("WEEK DAY: " + menu.getWeekDay());
+            System.out.println("FOOD: " + menu.getFood());
+
+            if (menu.getWorkingWeek() != null) {
+                System.out.println("WEEK ID: " + menu.getWorkingWeek().getId());
+            }
+
+            if (menu.getWeekDay() != null) {
+                System.out.println("DAY ID: " + menu.getWeekDay().getId());
+                System.out.println("DAY NAME: " + menu.getWeekDay().getPersianName());
+            }
+
+            if (menu.getFood() != null) {
+                System.out.println("FOOD ID: " + menu.getFood().getId());
+                System.out.println("FOOD NAME: " + menu.getFood().getName());
+            }
+
+            System.out.println("======================================");
+
+            return entityMapper.toWeeklyMenuResponse(menu);
+        });
         return PagedResponse.of(responsePage, responsePage.getContent());
     }
 

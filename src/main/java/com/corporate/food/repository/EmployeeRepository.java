@@ -14,5 +14,8 @@ public interface EmployeeRepository extends BaseRepository<Employee, Long> {
     boolean existsByPersonnelCode(String personnelCode);
 
     List<Employee> findByCompanyId(Long companyId);
+
     Page<Employee> findByCompanyId(Long companyId, Pageable pageable);
+
+    Page<Employee> findByUsernameContainingIgnoreCase(String username, Pageable pageable);
 }

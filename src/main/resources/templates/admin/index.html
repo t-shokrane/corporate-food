@@ -1,29 +1,63 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="fa" xmlns:th="http://www.thymeleaf.org">
+<link rel="stylesheet" href="/css/style.css">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title}">Corporate Food Admin</title>
-    <link rel="stylesheet" th:href="@{/css/admin.css}"/>
+    <title>پنل مدیریت</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
-<body>
-<main class="container">
-    <header>
-        <h1 th:text="${title}">Corporate Food Admin</h1>
-        <p>Minimal admin skeleton. Extend pages under <code>/templates/admin</code>.</p>
-    </header>
 
-    <section class="card">
-        <h2>API Modules</h2>
-        <ul>
-            <li><a th:href="${apiBase + '/companies'}">Companies</a></li>
-            <li><a th:href="${apiBase + '/employees'}">Employees</a></li>
-            <li><a th:href="${apiBase + '/foods'}">Foods (reference template)</a></li>
-            <li><a th:href="${apiBase + '/working-weeks'}">Working Weeks</a></li>
-            <li><a th:href="${apiBase + '/weekly-menus'}">Weekly Menus</a></li>
-            <li><a th:href="${apiBase + '/food-orders'}">Food Orders</a></li>
-        </ul>
-    </section>
-</main>
+<body>
+
+<div class="container">
+
+    <h1>پنل مدیریت سیستم سفارش غذا</h1>
+
+    <hr>
+
+    <h3>مدیریت سیستم</h3>
+
+    <ul>
+
+        <li>
+            <a th:href="@{/companies}">
+                🏢 مدیریت شرکت‌ها
+            </a>
+        </li>
+
+        <li>
+            <a th:href="@{/admin/employees-page}">
+                👤 مدیریت کارمندان
+            </a>
+        </li>
+
+        <li>
+            <a th:href="@{/admin/foods}">
+                🍔 مدیریت غذاها
+            </a>
+        </li>
+
+        <li>
+            <a th:href="@{/admin/weekly-menus}">
+                🗂️ مدیریت منوی هفتگی
+            </a>
+        </li>
+
+        <li>
+            <a th:href="@{/admin/orders}">
+                📋 مدیریت سفارش‌ها
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/admin/working-weeks}">
+                📅 مدیریت هفته کاری
+            </a>
+        </li>
+
+
+    </ul>
+
+</div>
+
 </body>
 </html>

@@ -1,0 +1,304 @@
+/* تنظیمات کلی */
+
+body {
+
+    direction: rtl;
+
+    font-family: Tahoma, Arial, sans-serif;
+
+    background: #f5f6fa;
+
+    margin: 0;
+
+    padding: 0;
+
+    min-height: 100vh;
+
+}
+
+
+/* صفحه لاگین */
+
+.login-page {
+
+    width: 100%;
+
+    height: 100vh;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+}
+
+
+
+.login-container {
+
+    width: 350px;
+
+    background: white;
+
+    padding: 35px;
+
+    border-radius: 15px;
+
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+
+    text-align: center;
+
+}
+
+
+
+.login-container h2 {
+
+    color: #2c3e50;
+
+    margin-bottom: 25px;
+
+}
+
+
+
+.login-container input {
+
+    width: 90%;
+
+    padding: 12px;
+
+    margin: 10px;
+
+    border-radius: 8px;
+
+    border: 1px solid #ccc;
+
+    text-align: right;
+
+}
+
+
+
+.login-container button {
+
+    width: 95%;
+
+    padding: 12px;
+
+    margin-top: 15px;
+
+    background: #3498db;
+
+    color: white;
+
+    border: none;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+}
+
+
+
+.login-container button:hover {
+
+    opacity: .8;
+
+}
+
+
+
+/* پنل ها */
+
+
+.container {
+
+    width: 90%;
+
+    margin: 30px auto;
+
+}
+
+
+
+.card {
+
+    background: white;
+
+    border-radius: 12px;
+
+    padding: 20px;
+
+    margin-bottom: 20px;
+
+    box-shadow: 0 3px 10px rgba(0,0,0,.1);
+
+}
+
+
+
+button {
+
+    background: #3498db;
+
+    color:white;
+
+    border:none;
+
+    padding:10px 18px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+}
+
+
+
+button:hover {
+
+    opacity:.8;
+
+}
+
+
+
+table {
+
+    width:100%;
+
+    background:white;
+
+    border-collapse:collapse;
+
+}
+
+
+
+th {
+
+    background:#3498db;
+
+    color:white;
+
+    padding:12px;
+
+}
+
+
+
+td {
+
+    padding:10px;
+
+    border-bottom:1px solid #ddd;
+    /* Layout پنل */
+
+    .panel-layout {
+
+        display: flex;
+
+        min-height: 100vh;
+
+    }
+
+
+
+    .sidebar {
+
+        width: 230px;
+
+        background: #2c3e50;
+
+        color: white;
+
+        padding-top: 20px;
+
+    }
+
+
+
+    .sidebar h2 {
+
+        text-align: center;
+
+        margin-bottom: 30px;
+
+    }
+
+
+
+    .sidebar a {
+
+        display: block;
+
+        color: white;
+
+        text-decoration: none;
+
+        padding: 15px 20px;
+
+    }
+
+
+
+    .sidebar a:hover {
+
+        background: #34495e;
+
+    }
+
+
+
+    .panel-content {
+
+        flex: 1;
+
+        padding: 30px;
+
+    }
+
+
+
+    .food-card {
+
+        background: white;
+
+        border-radius: 12px;
+
+        padding: 20px;
+
+        margin: 15px 0;
+
+        box-shadow: 0 3px 10px rgba(0,0,0,.1);
+
+    }
+
+
+
+    .week-button {
+
+        background: #3498db;
+
+        margin: 5px;
+
+    }
+
+
+
+    .order-card {
+
+        background: white;
+
+        padding: 15px;
+
+        border-radius: 10px;
+
+        margin: 10px 0;
+
+    }
+
+}

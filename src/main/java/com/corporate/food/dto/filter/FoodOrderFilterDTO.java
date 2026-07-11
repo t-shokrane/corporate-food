@@ -12,6 +12,8 @@ import lombok.experimental.SuperBuilder;
 public class FoodOrderFilterDTO extends BaseFilterDTO {
 
     private Long employeeId;
-
+    private Long weekdayId;
     private Long weekId;
+    private String role;
+
 }

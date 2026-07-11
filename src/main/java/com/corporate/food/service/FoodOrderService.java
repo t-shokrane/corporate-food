@@ -32,7 +32,7 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
     private final WorkingWeekRepository workingWeekRepository;
     private final WeekDayRepository weekDayRepository;
     private final FoodRepository foodRepository;
-
+    private final WeeklyMenuRepository weeklyMenuRepository;
     @Override
     protected BaseRepository<FoodOrder, Long> getRepository() {
         return foodOrderRepository;
@@ -49,8 +49,17 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
 
         Page<FoodOrder> page;
 
-        // 👇 هم کارمند هم هفته
-        if (filter.getEmployeeId() != null && filter.getWeekId() != null) {
+        // 👑 ادمین: همه سفارش‌ها را ببیند
+        if ("ADMIN".equals(filter.getRole())) {
+
+            page = foodOrderRepository.findByOrderStatus(
+                    OrderStatus.REGISTERED,
+                    pageable
+            );
+        }
+
+        // 👤 کارمند + هفته
+        else if (filter.getEmployeeId() != null && filter.getWeekId() != null) {
 
             page = foodOrderRepository.findByEmployeeIdAndWorkingWeekIdAndOrderStatus(
                     filter.getEmployeeId(),
@@ -60,7 +69,7 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
             );
         }
 
-        // 👇 فقط کارمند
+        // 👤 فقط کارمند
         else if (filter.getEmployeeId() != null) {
 
             page = foodOrderRepository.findByEmployeeIdAndOrderStatus(
@@ -70,7 +79,7 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
             );
         }
 
-        // 👇 فقط هفته
+        // فقط هفته
         else if (filter.getWeekId() != null) {
 
             page = foodOrderRepository.findByWorkingWeekIdAndOrderStatus(
@@ -80,7 +89,7 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
             );
         }
 
-        // 👇 همه سفارش‌های فعال
+        // حالت پیش فرض
         else {
 
             page = foodOrderRepository.findByOrderStatus(
@@ -93,7 +102,6 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
 
         return PagedResponse.of(responsePage, responsePage.getContent());
     }
-
     public FoodOrderResponse findById(Long id) {
         return foodOrderRepository.findById(id)
                 .map(entityMapper::toFoodOrderResponse)
@@ -104,22 +112,73 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
     @Transactional
     public FoodOrderResponse placeOrder(FoodOrderRequest request) {
 
+
         var employee = employeeRepository.findById(request.getEmployeeId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Employee not found with id: " + request.getEmployeeId()));
+                        new ResourceNotFoundException(
+                                "Employee not found with id: " + request.getEmployeeId()
+                        ));
+
 
         var workingWeek = workingWeekRepository.findById(request.getWeekId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Working week not found with id: " + request.getWeekId()));
+                        new ResourceNotFoundException(
+                                "Working week not found with id: " + request.getWeekId()
+                        ));
+
 
         var weekDay = weekDayRepository.findById(request.getWeekdayId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Week day not found with id: " + request.getWeekdayId()));
+                        new ResourceNotFoundException(
+                                "Week day not found with id: " + request.getWeekdayId()
+                        ));
+
 
         var food = foodRepository.findById(request.getFoodId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Food not found with id: " + request.getFoodId()));
+                        new ResourceNotFoundException(
+                                "Food not found with id: " + request.getFoodId()
+                        ));
 
+
+
+        // پیدا کردن منوی همان روز و غذا
+        var weeklyMenu = weeklyMenuRepository
+                .findByWorkingWeekIdAndWeekDayIdAndFoodIdAndEnabledTrue(
+                        request.getWeekId(),
+                        request.getWeekdayId(),
+                        request.getFoodId()
+                )
+                .orElseThrow(() ->
+                        new BusinessException(
+                                "This food is not available in menu"
+                        ));
+
+
+
+
+        // بررسی ظرفیت
+        long registeredCount =
+                foodOrderRepository.countByWorkingWeekIdAndWeekDayIdAndFoodIdAndOrderStatus(
+                        request.getWeekId(),
+                        request.getWeekdayId(),
+                        request.getFoodId(),
+                        OrderStatus.REGISTERED
+                );
+
+
+        if (registeredCount >= weeklyMenu.getCapacity()) {
+
+            throw new BusinessException(
+                    "Food capacity is full"
+            );
+
+        }
+
+
+
+
+        // بررسی سفارش قبلی کارمند
         var existingOrder = foodOrderRepository
                 .findByEmployeeIdAndWorkingWeekIdAndWeekDayId(
                         request.getEmployeeId(),
@@ -127,31 +186,50 @@ public class FoodOrderService extends BaseService<FoodOrder, Long> {
                         request.getWeekdayId()
                 );
 
+
+
         if (existingOrder.isPresent()) {
+
 
             FoodOrder order = existingOrder.get();
 
+
             if (order.getOrderStatus() == OrderStatus.CANCELLED) {
+
 
                 order.setOrderStatus(OrderStatus.REGISTERED);
                 order.setCancelledAt(null);
                 order.setFood(food);
 
+
                 var savedOrder = foodOrderRepository.save(order);
+
                 return entityMapper.toFoodOrderResponse(savedOrder);
+
             }
 
-            throw new BusinessException("Order already exists for this employee in this week day");
+
+            throw new BusinessException(
+                    "Order already exists for this employee in this week day"
+            );
+
         }
 
+
+
+
         FoodOrder order = new FoodOrder();
+
         order.setEmployee(employee);
         order.setWorkingWeek(workingWeek);
         order.setWeekDay(weekDay);
         order.setFood(food);
         order.setOrderStatus(OrderStatus.REGISTERED);
 
+
+
         var savedOrder = foodOrderRepository.save(order);
+
 
         return entityMapper.toFoodOrderResponse(savedOrder);
     }

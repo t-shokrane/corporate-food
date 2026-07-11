@@ -9,35 +9,36 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+
 @Controller
 @RequiredArgsConstructor
-public class FoodPageController {
+public class FoodOrderPageController {
+
 
     private final FoodOrderService foodOrderService;
 
 
-    // صفحه سفارش غذا
-    @GetMapping("/foods")
-    public String foods(Model model) {
+    @GetMapping("/admin/orders")
+    public String orders(Model model) {
+
 
         FoodOrderFilterDTO filter = new FoodOrderFilterDTO();
 
+        // فعلاً دمو: ادمین همه سفارش‌ها را می‌بیند
         filter.setRole("ADMIN");
+
 
         PagedResponse<FoodOrderResponse> orders =
                 foodOrderService.findAll(filter);
 
-        model.addAttribute("orders", orders.getItems());
 
-        return "admin/food";
-    }
+        model.addAttribute(
+                "orders",
+                orders.getItems()
+        );
 
 
-    // صفحه مدیریت غذاها
-    @GetMapping("/admin/foods")
-    public String manageFoods() {
-
-        return "admin/foods";
+        return "admin/orders";
 
     }
 

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fa">
+<link rel="stylesheet" href="/css/style.css">
+<head>
+    <meta charset="UTF-8">
+    <title>مدیریت هفته کاری</title>
+</head>
+
+<body>
+
+<h2>مدیریت هفته کاری</h2>
+
+<hr>
+
+<h3>ثبت هفته کاری</h3>
+
+<input id="weekNumber" type="number" placeholder="شماره هفته">
+
+<br><br>
+
+<input id="persianYear" type="number" placeholder="سال شمسی">
+
+<br><br>
+
+<input id="weekName" placeholder="نام هفته">
+
+<br><br>
+
+<label>تاریخ شروع:</label>
+<input id="startDate" type="date">
+
+<br><br>
+
+<label>تاریخ پایان:</label>
+<input id="endDate" type="date">
+
+<br><br>
+
+<select id="enabled">
+
+    <option value="true">
+        فعال
+    </option>
+
+    <option value="false">
+        غیرفعال
+    </option>
+
+</select>
+
+<br><br>
+
+<button onclick="saveWeek()">
+    ثبت هفته
+</button>
+
+<hr>
+
+<h3>لیست هفته‌ها</h3>
+
+<table border="1">
+
+    <thead>
+
+    <tr>
+
+        <th>شناسه</th>
+
+        <th>شماره هفته</th>
+
+        <th>سال</th>
+
+        <th>نام هفته</th>
+
+        <th>شروع</th>
+
+        <th>پایان</th>
+
+        <th>وضعیت</th>
+
+        <th>عملیات</th>
+
+    </tr>
+
+    </thead>
+
+    <tbody id="weekTable">
+
+    </tbody>
+
+</table>
+
+<script>
+
+    loadWeeks();
+
+    function loadWeeks(){
+
+        fetch("/api/v1/working-weeks")
+
+            .then(r=>r.json())
+
+            .then(result=>{
+
+                const tbody=document.getElementById("weekTable");
+
+                tbody.innerHTML="";
+
+                result.data.items.forEach(week=>{
+
+                    tbody.innerHTML +=`
+
+<tr>
+
+<td>${week.id}</td>
+
+<td>${week.weekNumber}</td>
+
+<td>${week.persianYear}</td>
+
+<td>${week.weekName}</td>
+
+<td>${week.startDate}</td>
+
+<td>${week.endDate}</td>
+
+<td>${week.enabled}</td>
+
+<td>
+
+<button onclick="deleteWeek(${week.id})">
+
+حذف
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+                });
+
+            });
+
+    }
+
+    function saveWeek(){
+
+        fetch("/api/v1/working-weeks",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+
+                weekNumber:Number(document.getElementById("weekNumber").value),
+
+                persianYear:Number(document.getElementById("persianYear").value),
+
+                weekName:document.getElementById("weekName").value,
+
+                startDate:document.getElementById("startDate").value,
+
+                endDate:document.getElementById("endDate").value,
+
+                enabled:document.getElementById("enabled").value==="true"
+
+            })
+
+        })
+
+            .then(r=>r.json())
+
+            .then(result=>{
+
+                if(result.success){
+
+                    alert("هفته ثبت شد");
+
+                    loadWeeks();
+
+                }else{
+
+                    alert(result.message);
+
+                }
+
+            });
+
+    }
+
+    function deleteWeek(id){
+
+        if(!confirm("آیا حذف شود؟")){
+
+            return;
+
+        }
+
+        fetch("/api/v1/working-weeks/"+id,{
+
+            method:"DELETE"
+
+        })
+
+            .then(r=>r.json())
+
+            .then(result=>{
+
+                if(result.success){
+
+                    alert("حذف شد");
+
+                    loadWeeks();
+
+                }else{
+
+                    alert(result.message);
+
+                }
+
+            });
+
+    }
+
+</script>
+
+</body>
+
+</html>

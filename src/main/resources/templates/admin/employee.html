@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fa">
+<link rel="stylesheet" href="/css/style.css">
+<head>
+
+    <meta charset="UTF-8">
+    <title>مدیریت کارمندان</title>
+</head>
+
+<body>
+
+<h2>مدیریت کارمندان</h2>
+
+<hr>
+
+<h3>ثبت کارمند</h3>
+
+<input id="username" placeholder="نام کاربری">
+
+<input id="password" type="password" placeholder="رمز عبور">
+
+<input id="firstName" placeholder="نام">
+
+<input id="lastName" placeholder="نام خانوادگی">
+
+<input id="personnelCode" placeholder="کد پرسنلی">
+
+
+<br><br>
+
+
+<select id="role">
+    <option value="EMPLOYEE">EMPLOYEE</option>
+    <option value="ADMIN">ADMIN</option>
+</select>
+
+
+<select id="companySelect">
+</select>
+
+
+<button onclick="saveEmployee()">
+    ثبت
+</button>
+
+
+<hr>
+
+
+<h3>فیلتر کارمندان</h3>
+
+
+<input id="searchUsername" placeholder="نام کاربری">
+
+
+<select id="searchCompany">
+    <option value="">
+        همه شرکت‌ها
+    </option>
+</select>
+
+
+<button onclick="loadEmployees()">
+    جستجو
+</button>
+
+
+<button onclick="clearFilters()">
+    پاک کردن
+</button>
+
+
+<hr>
+
+
+<h3>لیست کارمندان</h3>
+
+
+<table border="1">
+
+    <thead>
+    <tr>
+        <th>شناسه</th>
+        <th>نام</th>
+        <th>نام خانوادگی</th>
+        <th>نام کاربری</th>
+        <th>شرکت</th>
+        <th>نقش</th>
+        <th>عملیات</th>
+    </tr>
+    </thead>
+
+
+    <tbody id="employeeTable">
+
+    </tbody>
+
+
+</table>
+
+
+
+<script>
+
+
+    let editingEmployeeId = null;
+
+
+
+    loadCompanies();
+
+    loadEmployees();
+
+
+
+    function loadCompanies(){
+
+
+        fetch("/api/v1/companies")
+
+            .then(res => res.json())
+
+            .then(result => {
+
+
+                const companySelect =
+                    document.getElementById("companySelect");
+
+
+                const searchCompany =
+                    document.getElementById("searchCompany");
+
+
+
+                companySelect.innerHTML="";
+
+
+                searchCompany.innerHTML=
+                    `
+            <option value="">
+                همه شرکت‌ها
+            </option>
+            `;
+
+
+
+                result.data.items.forEach(company=>{
+
+
+                    companySelect.innerHTML +=
+                        `
+                <option value="${company.id}">
+                    ${company.name}
+                </option>
+                `;
+
+
+                    searchCompany.innerHTML +=
+                        `
+                <option value="${company.id}">
+                    ${company.name}
+                </option>
+                `;
+
+
+                });
+
+
+            });
+
+
+    }
+
+
+
+
+    function loadEmployees(){
+
+
+
+        let url="/api/v1/employees?";
+
+
+
+        let username =
+            document.getElementById("searchUsername").value;
+
+
+
+        let companyId =
+            document.getElementById("searchCompany").value;
+
+
+
+        if(username){
+
+            url +=
+                "username=" +
+                encodeURIComponent(username) +
+                "&";
+
+        }
+
+
+
+        if(companyId){
+
+            url +=
+                "companyId=" +
+                companyId;
+
+        }
+
+
+
+
+        fetch(url)
+
+            .then(res=>res.json())
+
+            .then(result=>{
+
+
+                const tbody =
+                    document.getElementById("employeeTable");
+
+
+                tbody.innerHTML="";
+
+
+
+                result.data.items.forEach(emp=>{
+
+
+                    tbody.innerHTML +=
+                        `
+
+            <tr>
+
+            <td>${emp.id}</td>
+
+            <td>${emp.firstName ?? ""}</td>
+
+            <td>${emp.lastName ?? ""}</td>
+
+            <td>${emp.username}</td>
+
+            <td>${emp.companyName ?? ""}</td>
+
+            <td>${emp.role}</td>
+
+
+            <td>
+
+            <button onclick="editEmployee(${emp.id})">
+            ویرایش
+            </button>
+
+
+            <button onclick="deleteEmployee(${emp.id})">
+            حذف
+            </button>
+
+
+            </td>
+
+
+            </tr>
+
+            `;
+
+
+                });
+
+
+            });
+
+
+    }
+
+
+
+
+    function clearFilters(){
+
+
+        document.getElementById("searchUsername").value="";
+
+
+        document.getElementById("searchCompany").value="";
+
+
+        loadEmployees();
+
+
+    }
+
+
+
+
+    function editEmployee(id){
+
+
+        fetch("/api/v1/employees/"+id)
+
+            .then(res=>res.json())
+
+            .then(result=>{
+
+
+                let emp=result.data;
+
+
+                editingEmployeeId=emp.id;
+
+
+
+                document.getElementById("username").value=emp.username;
+
+
+                document.getElementById("firstName").value=emp.firstName ?? "";
+
+
+                document.getElementById("lastName").value=emp.lastName ?? "";
+
+
+                document.getElementById("personnelCode").value=
+                    emp.personnelCode ?? "";
+
+
+                document.getElementById("role").value=emp.role;
+
+
+                document.getElementById("companySelect").value=
+                    emp.companyId;
+
+
+
+            });
+
+
+    }
+
+
+
+
+    function saveEmployee(){
+
+
+
+        let employee={
+
+
+            username:
+            document.getElementById("username").value,
+
+
+            password:
+            document.getElementById("password").value,
+
+
+            firstName:
+            document.getElementById("firstName").value,
+
+
+            lastName:
+            document.getElementById("lastName").value,
+
+
+            personnelCode:
+            document.getElementById("personnelCode").value,
+
+
+            role:
+            document.getElementById("role").value,
+
+
+            enabled:true,
+
+
+            companyId:
+                Number(document.getElementById("companySelect").value)
+
+
+        };
+
+
+
+
+        let url="/api/v1/employees";
+
+        let method="POST";
+
+
+
+        if(editingEmployeeId){
+
+
+            url="/api/v1/employees/"+editingEmployeeId;
+
+
+            method="PUT";
+
+
+        }
+
+
+
+
+        fetch(url,{
+
+
+            method:method,
+
+
+            headers:{
+
+                "Content-Type":"application/json"
+
+            },
+
+
+            body:JSON.stringify(employee)
+
+
+
+        })
+
+
+            .then(res=>res.json())
+
+
+            .then(result=>{
+
+
+                if(result.success){
+
+
+                    alert("عملیات موفق بود");
+
+
+                    editingEmployeeId=null;
+
+
+                    loadEmployees();
+
+
+                }else{
+
+
+                    alert(result.message);
+
+
+                }
+
+
+
+            });
+
+
+
+    }
+
+
+
+
+
+    function deleteEmployee(id){
+
+
+
+        if(!confirm("حذف شود؟")){
+
+            return;
+
+        }
+
+
+
+        fetch("/api/v1/employees/"+id,{
+
+            method:"DELETE"
+
+        })
+
+
+            .then(res=>res.json())
+
+
+            .then(result=>{
+
+
+                if(result.success){
+
+
+                    alert("حذف شد");
+
+
+                    loadEmployees();
+
+
+                }else{
+
+
+                    alert(result.message);
+
+
+                }
+
+
+
+            });
+
+
+
+    }
+
+
+
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="fa">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>پنل کارمند</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+</head>
+
+
+<body>
+
+
+<div class="panel-layout">
+
+
+    <!-- منوی کناری -->
+
+    <div class="sidebar">
+
+
+        <h2>
+            کارمند
+        </h2>
+
+
+        <a href="/employee">
+            🏠 پنل اصلی
+        </a>
+
+
+        <a href="#">
+            🍔 منوی غذا
+        </a>
+
+
+        <a href="#orders">
+            📦 سفارش‌های من
+        </a>
+
+
+        <a href="/logout">
+            🚪 خروج
+        </a>
+
+
+    </div>
+
+
+
+    <!-- محتوای اصلی -->
+
+    <div class="panel-content">
+
+
+        <h1>
+            پنل کارمند 👤
+        </h1>
+
+
+
+        <div class="card">
+
+            <h3>
+                هفته کاری
+            </h3>
+
+
+            <div id="week"></div>
+
+
+        </div>
+
+
+
+
+
+        <div class="card">
+
+
+            <h3>
+                منوی غذا
+            </h3>
+
+
+            <div id="menu"></div>
+
+
+        </div>
+
+
+
+
+
+        <div class="card" id="orders">
+
+
+            <h3>
+                سفارش‌های من
+            </h3>
+
+
+            <div id="orders-list"></div>
+
+
+        </div>
+
+
+
+    </div>
+
+
+</div>
+
+
+
+
+
+<script>
+
+
+    let currentEmployeeId = null;
+
+
+
+    loadCurrentUser();
+
+
+
+
+
+    // گرفتن کاربر فعلی
+
+    function loadCurrentUser(){
+
+
+        fetch("/api/v1/employee-panel/me")
+
+            .then(res => res.json())
+
+            .then(result => {
+
+
+                currentEmployeeId = result.data.id;
+
+
+                console.log(
+                    "کاربر:",
+                    currentEmployeeId
+                );
+
+
+                loadWeeks();
+
+                loadOrders();
+
+
+            });
+
+
+    }
+
+
+
+
+
+
+    // نمایش هفته ها
+
+    function loadWeeks(){
+
+
+        fetch("/api/v1/working-weeks/enabled")
+
+
+            .then(res => res.json())
+
+
+            .then(result => {
+
+
+                let div =
+                    document.getElementById("week");
+
+
+
+                div.innerHTML = "";
+
+
+
+                result.data.items.forEach(week => {
+
+
+
+                    div.innerHTML += `
+
+
+                <button onclick="loadMenu(${week.id})">
+
+                    ${week.weekName}
+
+                </button>
+
+
+                `;
+
+
+
+                });
+
+
+            });
+
+
+
+    }
+
+
+
+
+
+
+
+    // نمایش غذاهای هفته
+
+    function loadMenu(weekId){
+
+
+
+        fetch("/api/v1/weekly-menus/week/" + weekId)
+
+
+            .then(res => res.json())
+
+
+            .then(result => {
+
+
+                let div =
+                    document.getElementById("menu");
+
+
+
+                div.innerHTML = "";
+
+
+
+                result.data.items.forEach(menu => {
+
+
+
+                    div.innerHTML += `
+
+
+                <div class="food-card">
+
+
+                    <h3>
+
+                    ${menu.weekdayPersianName}
+
+                    </h3>
+
+
+
+                    <p>
+
+                    🍽 ${menu.foodName}
+
+                    </p>
+
+
+
+                    <p>
+
+                    ظرفیت:
+                    ${menu.capacity}
+
+                    </p>
+
+
+
+
+                    <button onclick="orderFood(
+                        ${weekId},
+                        ${menu.weekdayId},
+                        ${menu.foodId}
+                    )">
+
+                    ثبت سفارش
+
+                    </button>
+
+
+
+                </div>
+
+
+
+                `;
+
+
+
+                });
+
+
+
+            });
+
+
+
+    }
+
+
+
+
+
+
+
+
+    // ثبت سفارش
+
+
+    function orderFood(
+        weekId,
+        weekdayId,
+        foodId
+    ){
+
+
+
+        fetch("/api/v1/food-orders",{
+
+
+            method:"POST",
+
+
+            headers:{
+
+
+                "Content-Type":"application/json"
+
+
+            },
+
+
+            body:JSON.stringify({
+
+
+                employeeId:currentEmployeeId,
+
+
+                weekId:weekId,
+
+
+                weekdayId:weekdayId,
+
+
+                foodId:foodId
+
+
+
+            })
+
+
+
+        })
+
+
+
+            .then(res=>res.json())
+
+
+            .then(result=>{
+
+
+                if(result.success){
+
+
+                    alert("سفارش ثبت شد");
+
+
+                    loadOrders();
+
+
+                }
+
+                else{
+
+
+                    alert(result.message);
+
+
+                }
+
+
+            });
+
+
+
+    }
+
+
+
+
+
+
+
+
+    // سفارش های من
+
+
+    function loadOrders(){
+
+
+
+        if(currentEmployeeId == null)
+
+            return;
+
+
+
+
+        fetch(
+            "/api/v1/food-orders?employeeId="
+            + currentEmployeeId
+        )
+
+
+
+            .then(res=>res.json())
+
+
+            .then(result=>{
+
+
+                let div =
+                    document.getElementById("orders-list");
+
+
+
+                div.innerHTML="";
+
+
+
+                result.data.items.forEach(order=>{
+
+
+
+                    div.innerHTML += `
+
+
+            <div class="order-card">
+
+
+                <p>
+
+                🍽 ${order.foodName}
+
+                </p>
+
+
+                <p>
+
+                📅 ${order.weekdayPersianName}
+
+                </p>
+
+
+                <p>
+
+                وضعیت:
+                ${order.orderStatus}
+
+                </p>
+
+
+
+
+                ${
+                        order.orderStatus === "REGISTERED"
+
+                            ?
+
+                            `
+
+                <button onclick="cancelOrder(${order.id})">
+
+                لغو سفارش
+
+                </button>
+
+                `
+
+                            :
+
+                            ""
+
+                    }
+
+
+
+            </div>
+
+
+            `;
+
+
+
+                });
+
+
+
+            });
+
+
+
+    }
+
+
+
+
+
+
+
+
+    // لغو سفارش
+
+
+    function cancelOrder(id){
+
+
+
+        if(!confirm("لغو شود؟"))
+
+            return;
+
+
+
+
+        fetch(
+            "/api/v1/food-orders/"
+            + id
+            + "/cancel",
+            {
+
+                method:"POST"
+
+            }
+
+        )
+
+
+
+            .then(res=>res.json())
+
+
+            .then(result=>{
+
+
+                if(result.success){
+
+
+                    alert("لغو شد");
+
+
+                    loadOrders();
+
+
+                }
+
+
+            });
+
+
+
+    }
+
+
+
+</script>
+
+
+
+</body>
+
+</html>
